@@ -25,9 +25,34 @@ segmento + cidade  ->  motor de coleta (Docker)  ->  CSV  ->  camada Brasil  -> 
 | Fase | O quê | Situação |
 |------|-------|----------|
 | 0 | Fundação do repositório | feita |
-| 1 | Motor rodando e validado | pendente |
-| 2 | Camada Brasil (relatório, CSV, planejador, pontuação, LGPD) | pendente |
+| 1 | Motor rodando e validado | **parcial**: imagem baixada e flags confirmadas; coleta real pendente (a nuvem não alcança o Google Maps). O teste real será feito num Chromebook |
+| 2a | Camada Brasil que não depende de dados reais (tratamento do CSV, relatório HTML, planejador de consultas) | feita, testada só com dados fictícios |
+| 2b | Pontuação de lead, CNPJ (experimental), guardrails de LGPD | pendente: depende das taxas reais de preenchimento |
 | 3 | Skill e comandos em PT-BR | pendente |
+
+## Ver a demonstração (dados 100% fictícios)
+
+Abra `examples/demo-relatorio.html` com duplo clique. Funciona sem internet.
+
+Para gerar de novo a partir do CSV de demonstração (precisa só de Python 3):
+
+```bash
+python3 -I scripts/tratar_csv.py examples/demo-leads.csv
+python3 -I scripts/gerar_relatorio.py resultados/demo-leads-tratados.csv --saida examples/demo-relatorio.html
+```
+
+## O que tem aqui
+
+| Arquivo | Para quê |
+|---------|----------|
+| `docs/teste-no-chromebook.md` | passo a passo do teste real, em português simples |
+| `scripts/teste-real.sh` | roda o teste (3 consultas, `-depth 1`, sem proxy) e mede o tempo |
+| `scripts/resumo_teste.py` | relatório só com números, que pode ser colado no chat sem expor dados |
+| `scripts/tratar_csv.py` | telefones +55, celular x fixo, link do WhatsApp, deduplicação, CSV para Excel |
+| `scripts/gerar_relatorio.py` | relatório HTML de arquivo único, com busca e filtros |
+| `scripts/planejar_consultas.py` | combina segmentos x cidades e gera o arquivo de consultas |
+| `tests/` | testes (`python3 -I -m unittest discover -s tests`) |
+| `NOTES.md` | decisões, medições, erros e suposições ainda não confirmadas |
 
 ## Avisos importantes (leia antes de usar)
 
