@@ -131,5 +131,25 @@ class TesteCodespace(unittest.TestCase):
             self.assertIs(dind.get("moby"), False, "Moby não existe para Debian trixie: use moby=false")
 
 
+class TesteConfigGravacao(unittest.TestCase):
+    PASTA = Path(kit.RAIZ) / ".devcontainer" / "video"
+
+    def test_config_valida(self):
+        import json
+        dc = json.loads((self.PASTA / "devcontainer.json").read_text(encoding="utf-8"))
+        self.assertIn("ghcr.io/devcontainers/features/desktop-lite:1", dc["features"])
+        dind = dc["features"]["ghcr.io/devcontainers/features/docker-in-docker:4"]
+        if "trixie" in dc["image"]:
+            self.assertIs(dind.get("moby"), False)
+        self.assertEqual(dc["forwardPorts"], [6080])
+        self.assertIn("instalar-claude-desktop.sh", dc["postCreateCommand"])
+
+    def test_instalador_confere_chave_oficial(self):
+        s = (self.PASTA / "instalar-claude-desktop.sh").read_text(encoding="utf-8")
+        self.assertIn("31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE", s)
+        self.assertIn('$1=="pub"', s, "deve ler só a digital da chave principal")
+        self.assertIn("set -euo pipefail", s)
+
+
 if __name__ == "__main__":
     unittest.main()

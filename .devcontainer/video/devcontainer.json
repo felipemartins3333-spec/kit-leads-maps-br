@@ -1,0 +1,25 @@
+{
+  "name": "Gravação de vídeos (área de trabalho + Claude Desktop)",
+  "image": "mcr.microsoft.com/devcontainers/python:3.13-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {
+      "moby": false
+    },
+    "ghcr.io/devcontainers/features/desktop-lite:1": {},
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  },
+  "runArgs": [
+    "--shm-size=1g"
+  ],
+  "forwardPorts": [
+    6080
+  ],
+  "portsAttributes": {
+    "6080": {
+      "label": "Área de trabalho (abra no navegador)",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/video/instalar-claude-desktop.sh || echo 'Claude Desktop não instalou; veja docs/gravacao-videos.md'"
+}

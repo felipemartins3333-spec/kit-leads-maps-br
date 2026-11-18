@@ -77,6 +77,7 @@ python3 -I scripts/gerar_relatorio.py resultados/demo-leads-tratados.csv --saida
 | `scripts/kit.py` | **comando principal**: `verificar`, `preparar`, `testar`, `buscar` |
 | `docs/instalacao.md` | instalação: Codespace, Windows, Mac, Linux, com ou sem Claude |
 | `.devcontainer/` | Codespace já pronto (Python, Docker, Claude Code) |
+| `.devcontainer/video/` e `docs/gravacao-videos.md` | Codespace de **gravação de vídeos**: área de trabalho no navegador + Claude Desktop (Linux, beta) |
 | `.claude/commands/` | comandos do Claude Code: `/leads-instalar` e `/leads-buscar` |
 | `.claude/skills/leads-maps-br/` | skill: o Claude entende pedidos como "lista de dentistas em Salvador" |
 | `.github/` | testes automáticos (Linux, Windows, Mac) e formulário "Relatar problema" |

@@ -260,3 +260,30 @@ sem `claude`**. Os três comandos do `kit.py` rodaram e pararam corretamente em 
   ainda desconhecida; não bloqueia o teste do kit.
 - Lição: eu não consegui construir o Codespace na sessão de desenvolvimento; o 1º teste real da
   configuração foi o do Felipe. Deveria ter marcado isso como risco maior.
+
+## Rodada 6 (2026-11-18) — Codespace de gravação de vídeos (Claude Desktop)
+
+Objetivo do Felipe: gravar vídeos com o Claude Desktop tendo só um Chromebook de 2 GB.
+
+- **Pesquisa (fontes no fim da conversa / docs/gravacao-videos.md):** Claude Desktop tem versão
+  Linux beta (Debian 12+/Ubuntu 22.04+, amd64/arm64; a página não informa RAM mínima; sem Computer
+  Use nem ditado no Linux). Cota gratuita do Codespaces: 120 horas-núcleo/mês (~60 h em 2 núcleos).
+  Oracle Always Free: relatos de redução para 2 OCPU/12 GB em 15/06/2026 (conflitante com páginas
+  antigas). Azure: US$ 200 por 30 dias, exige cartão. "RAM virtual na nuvem" para o Chromebook não
+  existe.
+- **Escolha do Felipe: opção 1.** Configuração separada `.devcontainer/video/` (a dos clientes
+  continua leve): `python:3.13-bookworm` + docker-in-docker (`moby: false`) + `desktop-lite`
+  (área de trabalho Fluxbox via noVNC na porta 6080, privada no Codespace) + Claude Code +
+  `--shm-size=1g` (recomendado pelo desktop-lite para apps que travam) + instalação do Claude
+  Desktop pelo `postCreateCommand`.
+- Bookworm em vez de trixie nesta configuração: os dois recursos (desktop-lite e docker-in-docker)
+  são mais antigos/testados no bookworm; o Claude Desktop exige Debian 12+, então bookworm serve.
+- **Instalador** (`.devcontainer/video/instalar-claude-desktop.sh`): comandos da documentação
+  oficial, com `apt-get -y` e conferência automática da impressão digital publicada
+  (31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE). **Defeito achado em teste:** `gpg --with-colons`
+  também lista as subchaves, e a 1ª versão compararia todas as digitais juntas (falharia com a chave
+  verdadeira). Corrigido para ler só a chave principal; provado com a chave pública do Docker
+  (lê 9DC858229FC7DD38854AE2D88D81803C0EBFCD88 e ignora a subchave).
+- **Não testado:** o Codespace de gravação nunca foi construído; `downloads.claude.ai` é bloqueado
+  na sessão de desenvolvimento, então a chave real e o pacote não foram baixados aqui. Se o Electron
+  do Claude Desktop vai abrir dentro do contêiner (sem GPU) é a maior incógnita.
