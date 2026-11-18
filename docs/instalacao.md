@@ -104,7 +104,7 @@ sistema) e roda o teste pequeno.
 
 ## Caminho C — Sem Claude
 
-1. **Python 3.8 ou mais novo.**
+1. **Python 3.9 ou mais novo.**
    - Linux e Codespace: já vem.
    - Mac: digite `python3 --version` no Terminal. Se o Mac oferecer instalar as ferramentas de
      linha de comando, aceite.

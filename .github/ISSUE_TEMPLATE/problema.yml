@@ -1,0 +1,58 @@
+name: Relatar problema
+description: Algo não funcionou na instalação ou no uso do kit
+title: "[Problema] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por avisar! Para proteger dados de terceiros, **não cole nomes, telefones,
+        e-mails ou sites de empresas**. O arquivo `resultados/relatorio-teste.txt` só tem números
+        e pode ser colado sem problema.
+  - type: dropdown
+    id: sistema
+    attributes:
+      label: Onde você rodou o kit?
+      options:
+        - Windows
+        - Mac
+        - Linux
+        - Chromebook (Linux)
+        - Codespace (GitHub)
+        - Outro
+    validations:
+      required: true
+  - type: dropdown
+    id: caminho
+    attributes:
+      label: Como você instalou?
+      options:
+        - Pelo Claude (prompt de instalação ou /leads-instalar)
+        - Digitando os comandos (Caminho C)
+        - Codespace (Caminho A)
+    validations:
+      required: true
+  - type: textarea
+    id: oque
+    attributes:
+      label: O que aconteceu?
+      description: Em que passo parou e o que você esperava que acontecesse.
+    validations:
+      required: true
+  - type: textarea
+    id: verificar
+    attributes:
+      label: Saída do "kit.py verificar"
+      description: Cole o que aparece ao rodar `python3 scripts/kit.py verificar` (no Windows, `py scripts\kit.py verificar`).
+      render: text
+  - type: textarea
+    id: relatorio
+    attributes:
+      label: Conteúdo de resultados/relatorio-teste.txt (se existir)
+      render: text
+  - type: checkboxes
+    id: privacidade
+    attributes:
+      label: Privacidade
+      options:
+        - label: Não colei nomes, telefones, e-mails ou sites de empresas.
+          required: true

@@ -83,5 +83,36 @@ class TesteConsultas(unittest.TestCase):
             self.assertEqual(kit.main(["testar", "--consultas", str(p), "--mostrar-comando"]), 1)
 
 
+
+class TesteNaMaquinaReal(unittest.TestCase):
+    """Rodam no sistema de verdade (no GitHub Actions: Windows, Mac e Linux)."""
+
+    def test_mede_memoria(self):
+        self.assertGreater(kit.ram_mb(), 0, "a leitura de memória precisa funcionar neste sistema")
+
+    def test_verificar_nao_quebra(self):
+        info = kit.verificar(silencioso=True)
+        for chave in ("arquitetura", "ram_mb", "disco_livre_gb", "python", "docker_ok", "faltas"):
+            self.assertIn(chave, info)
+
+    def test_fluxo_da_demo(self):
+        import gerar_relatorio
+        import tratar_csv
+        demo = Path(kit.RAIZ) / "examples" / "demo-leads.csv"
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(tratar_csv.main([str(demo), "--saida-pasta", d]), 0)
+            tratados = Path(d) / "demo-leads-tratados.csv"
+            excel = Path(d) / "demo-leads-excel.csv"
+            self.assertTrue(excel.read_bytes().startswith(b"\xef\xbb\xbf"))
+            html = Path(d) / "r.html"
+            self.assertEqual(gerar_relatorio.main([str(tratados), "--saida", str(html)]), 0)
+            conteudo = html.read_text(encoding="utf-8")
+            self.assertIn("connect-src 'none'", conteudo)
+            self.assertIn("Odonto Sorriso de Mentira", conteudo)
+
+    def test_mostrar_comando_com_caminho_deste_sistema(self):
+        self.assertEqual(kit.main(["testar", "--mostrar-comando"]), 0)
+
+
 if __name__ == "__main__":
     unittest.main()

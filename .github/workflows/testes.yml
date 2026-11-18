@@ -1,0 +1,37 @@
+name: testes
+
+# Roda os testes do kit em Linux, Windows e Mac nos servidores do GitHub.
+# Não coleta nada do Google Maps: testa só a camada do kit (scripts, planilha, relatório).
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.13"]
+        include:
+          - os: ubuntu-latest
+            python: "3.9"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Testes
+        run: python -I -m unittest discover -s tests -v
+      - name: kit.py verificar (só mostra; pode faltar Docker no servidor)
+        run: python -I scripts/kit.py verificar || echo "verificar terminou com pendências (esperado se não houver Docker)"
+        shell: bash
+      - name: kit.py testar --mostrar-comando
+        run: python -I scripts/kit.py testar --mostrar-comando

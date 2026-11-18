@@ -192,8 +192,8 @@ def verificar(silencioso=False):
 
     pv = sys.version_info
     info["python"] = platform.python_version()
-    if pv < (3, 8):
-        out(f"[falta] Python {info['python']}: o kit precisa do Python 3.8 ou mais novo.")
+    if pv < (3, 9):
+        out(f"[falta] Python {info['python']}: o kit precisa do Python 3.9 ou mais novo.")
         info["faltas"].append("Python antigo")
     else:
         out(f"[ok] Python: {info['python']}")
