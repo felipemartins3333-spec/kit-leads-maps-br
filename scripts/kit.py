@@ -128,6 +128,10 @@ def rodar(cmd, **kw):
 
 def checar_docker():
     if not shutil.which("docker"):
+        if os.environ.get("CODESPACES") == "true":
+            return False, ("Este Codespace abriu sem a configuração do kit (sem Docker). Reconstrua: aperte "
+                           "Ctrl+Shift+P, escolha 'Codespaces: Rebuild Container' e espere terminar. "
+                           "Se continuar, apague este Codespace e crie outro.")
         return False, "O Docker não está instalado. Siga docs/instalacao.md (parte 'Instalar o Docker')."
     try:
         r = rodar(["docker", "info"], timeout=60)

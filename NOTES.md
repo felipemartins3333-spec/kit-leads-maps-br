@@ -239,3 +239,24 @@ mais que o tamanho da imagem.
   → `kit.py buscar` → números + caminhos) e skill `leads-maps-br` (roteia para os comandos).
 - **Decisão de material:** o material público cita só o gosom (motor) e este kit. A linha de
   "kits consultados como referência" fica no `CREDITS.md`, por transparência.
+
+## Rodada 5 (2026-11-18) — 1º teste do Felipe no Codespace (sem coleta)
+
+Medido no Codespace dele: x86_64, 7942 MB de RAM, 28 GB livres, **Python 3.12.16, sem Docker,
+sem `claude`**. Os três comandos do `kit.py` rodaram e pararam corretamente em "falta Docker".
+
+- **Erro encontrado (troubleshooting):** o Codespace abriu SEM a nossa configuração (Python 3.12
+  em vez do 3.13 do `devcontainer.json`), ou seja, em contêiner de recuperação. Causa provável,
+  confirmada no `install.sh` oficial do recurso docker-in-docker: com o padrão `moby: true` ele
+  aborta no Debian trixie ("The 'moby' option is not supported on debian 'trixie'"). Correção:
+  `"moby": false` (Docker CE, suportado no trixie segundo o mesmo script). Ainda não confirmado
+  num Codespace novo.
+- Removido `hostRequirements.memory = 8gb`: a máquina padrão de 2 núcleos reporta 7942 MB e o
+  requisito poderia forçar uma máquina maior (mais cota). A padrão basta.
+- `kit.py verificar` agora detecta Codespace sem Docker (`CODESPACES=true`) e manda reconstruir
+  o contêiner, em vez de mandar instalar o Docker.
+- **Claude Code:** o instalador oficial funcionou no Codespace (versão 2.1.327, em
+  `~/.local/bin/claude`), mas ao digitar `claude` o terminal voltou sem mostrar nada. Causa
+  ainda desconhecida; não bloqueia o teste do kit.
+- Lição: eu não consegui construir o Codespace na sessão de desenvolvimento; o 1º teste real da
+  configuração foi o do Felipe. Deveria ter marcado isso como risco maior.

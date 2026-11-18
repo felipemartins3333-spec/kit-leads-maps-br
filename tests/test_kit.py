@@ -114,5 +114,22 @@ class TesteNaMaquinaReal(unittest.TestCase):
         self.assertEqual(kit.main(["testar", "--mostrar-comando"]), 0)
 
 
+class TesteCodespace(unittest.TestCase):
+    def test_codespace_sem_docker_sugere_rebuild(self):
+        import os
+        from unittest import mock
+        with mock.patch.dict(os.environ, {"CODESPACES": "true"}), mock.patch("shutil.which", return_value=None):
+            ok, msg = kit.checar_docker()
+        self.assertFalse(ok)
+        self.assertIn("Rebuild Container", msg)
+
+    def test_devcontainer_docker_ce_no_trixie(self):
+        import json
+        dc = json.loads((Path(kit.RAIZ) / ".devcontainer" / "devcontainer.json").read_text(encoding="utf-8"))
+        dind = dc["features"]["ghcr.io/devcontainers/features/docker-in-docker:4"]
+        if "trixie" in dc["image"]:
+            self.assertIs(dind.get("moby"), False, "Moby não existe para Debian trixie: use moby=false")
+
+
 if __name__ == "__main__":
     unittest.main()
