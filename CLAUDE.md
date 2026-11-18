@@ -1,36 +1,59 @@
-# CLAUDE.md — regras permanentes deste repositório
+# CLAUDE.md — como instalar e operar este kit
 
-Kit brasileiro de geração de leads com Google Maps. Tudo em português do Brasil, simples e
-à prova de erro, para quem não é técnico. Licença MIT (Felipe Martins Muniz).
+Este repositório é um kit, em português do Brasil, que transforma **"segmento + cidade"** em
+uma lista de empresas do Google Maps pronta para prospecção (telefone +55, WhatsApp, site,
+e-mail, planilha para Excel e relatório HTML). O motor de coleta é a imagem Docker oficial
+`gosom/google-maps-scraper` (MIT, veja `CREDITS.md`).
 
-## Regras invioláveis
+Quem usa costuma NÃO ser técnico. Fale em português simples, um passo de cada vez.
 
-1. **Originalidade.** Não copiar texto, código, nomes, banners ou visual de nenhum
-   repositório de referência (gosom, Mahanaicoach, vzbaggio). Pode aprender a ideia e
-   reescrever do zero. O motor entra só como imagem Docker publicada, sem o código-fonte.
-2. **Nada de flag inventada.** Confirmar toda flag com `docker run --rm gosom/google-maps-scraper -h`
-   ou com o README oficial antes de usar. Registrar a versão do motor nas medições.
-3. **Testes pequenos.** No máximo 3 consultas, `-depth 1`, sem proxy. Nada de varredura grande.
-4. **Rede.** Nunca expor porta além de `127.0.0.1`. Por padrão não subimos servidor nenhum.
-5. **Dados reais nunca vão para o git.** Resultados ficam em `resultados/` (ignorada). O único
-   CSV versionado é `examples/demo-*.csv`, 100% fictício, com `fonte = DEMO`.
-6. **Honestidade.** Dizer sempre que o scraping do Google Maps pode contrariar os termos do
-   Google e que dados de contato envolvem LGPD. Nada de promessa de volume ou de resultado.
-7. **Telemetria.** Todo `docker run` do motor leva `-e DISABLE_TELEMETRY=1`.
-8. **Validar o CSV, não o código de saída.** O motor sai com código 0 mesmo sem coletar nada.
-   Sempre contar as linhas com o módulo `csv` (campos podem ter quebra de linha; `wc -l` erra).
-9. **Por fase.** Trabalhar por fase, parar ao terminar, resumir e esperar aprovação.
-10. **Fatos, não impressões.** Registrar em `NOTES.md` só o que foi medido ou lido na fonte,
-    marcando claramente o que é suposição.
-11. **Execução.** A nuvem não alcança o Google Maps. A coleta real é feita pelo Felipe na
-    máquina dele. Não tentar acessar o Google daqui, não subir `dockerd`, não instalar nada
-    com privilégio elevado.
-12. **Git.** Autor dos commits: o e-mail noreply do GitHub configurado neste repositório.
-    Antes de cada commit/push: procurar segredos (chaves, tokens, `.env`) e conferir o autor.
-    Nunca `push --force` sem nova autorização explícita do Felipe.
+## Para instalar
 
-## Convenções
+Siga `docs/instalacao.md` (ou o comando `/leads-instalar`). O caminho é sempre:
 
-- Scripts Python: só biblioteca padrão. Rodar com `python3 -I` quando lerem arquivos baixados.
-- Dados privados nunca em relatórios para colar no chat: só números, tempos e versões.
-- Dados de demonstração: nomes claramente inventados, e-mails `@example.com`, `fonte = DEMO`.
+1. `python3 scripts/kit.py verificar` (no Windows: `py scripts\kit.py verificar`): diz o que falta.
+2. Resolver só o que faltar, pelo `docs/instalacao.md`.
+3. `python3 scripts/kit.py preparar`: baixa a imagem do motor (~2 GB).
+4. `python3 scripts/kit.py testar`: teste pequeno (3 consultas) com relatório só de números.
+
+## Regras para quem opera o kit (inclusive você, Claude)
+
+1. **Não invente comandos.** Use só os do `scripts/kit.py`, do `docs/instalacao.md` e das
+   documentações oficiais citadas lá. Não rode o motor "por fora" com flags novas.
+2. **Peça confirmação antes de mudar o sistema:** instalar Docker, Python ou Git, usar
+   `sudo`/administrador, colocar o usuário no grupo `docker`. Mostre o que vai rodar e por quê.
+   Comandos do `kit.py` dentro da pasta do kit podem rodar direto.
+3. **Avise uma vez, sem drama:** coletar dados do Google Maps de forma automática pode
+   contrariar os termos do Google, e telefones/e-mails de empresas podem ser dados pessoais
+   (LGPD: finalidade clara, base legal, respeitar quem pedir para não ser contatado). Não é
+   aconselhamento jurídico.
+4. **Sem promessa de volume ou de resultado.** Muitas empresas não têm telefone, site ou
+   e-mail no Maps. Mostre os números que o kit medir, não estimativas.
+5. **Comece pequeno.** Primeiro o `testar` (3 consultas, `-depth 1`). Busca maior só quando o
+   usuário pedir; avise que mais consultas e mais profundidade = mais tempo e mais risco de o
+   Google limitar o acesso. Uma busca por vez.
+6. **Confira o CSV, não o código de saída.** O motor sai com código 0 mesmo sem coletar nada;
+   o `kit.py` já conta as linhas. Se vier 0 linhas, explique as causas que ele mostra.
+7. **Dados ficam na máquina.** Tudo vai para `resultados/` (fora do git). Não envie listas para
+   serviços externos e não cole a lista inteira no chat sem o usuário pedir. Para pedir ajuda,
+   use `resultados/relatorio-teste.txt`, que só tem números.
+8. **Rede.** O kit não abre porta nenhuma. Não suba a interface web do motor; se o usuário
+   insistir, publique só em `127.0.0.1`.
+9. **Telemetria do motor desligada:** o `kit.py` já passa `DISABLE_TELEMETRY=1`.
+
+## Comandos úteis
+
+| Para | Comando |
+|------|---------|
+| Ver o que falta | `python3 scripts/kit.py verificar` |
+| Baixar o motor | `python3 scripts/kit.py preparar` |
+| Teste pequeno | `python3 scripts/kit.py testar` |
+| Busca | `python3 scripts/kit.py buscar --segmentos "academias" --cidades "Salvador BA"` |
+| Busca com e-mail | acrescente `--email` (mais lento: visita o site de cada empresa) |
+
+No Windows, troque `python3` por `py` e as barras `/` por `\`.
+
+## Para quem desenvolve o kit
+
+Leia também `docs/desenvolvimento.md`: aquelas regras valem para qualquer alteração no código
+ou na documentação.

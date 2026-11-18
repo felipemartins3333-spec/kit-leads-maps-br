@@ -165,3 +165,57 @@ mais que o tamanho da imagem.
 - **Riscos abertos:** (a) `teste-real.sh` é Bash: não roda em Windows puro (exigiria WSL/Git Bash);
   (b) o `chown` pós-teste (imagem do motor como `--entrypoint`) foi testado aqui com arquivo de dono diferente e funcionou, mas só como root; no Chromebook, com usuário comum, ainda não;
   (c) Docker em Crostini (Linux do Chromebook) pode falhar em alguns aparelhos, não testado.
+
+---
+
+## Rodada 3 (2026-11-18) — Fase 3a: instalação
+
+### Correções de fato (eu tinha dito diferente antes)
+- **Claude Desktop tem versão Linux (beta)**, para Debian 12+ / Ubuntu 22.04+, x86_64 ou arm64
+  (code.claude.com/docs/en/desktop-linux). Antes eu disse que só existia para Mac e Windows.
+- **O kit do vzbaggio não instala o Docker sozinho.** O `SETUP.md` dele lista o Docker Desktop
+  como pré-requisito (com link) e o comando de setup só confere `docker ps`. O "automático" é
+  o que vem depois do Docker. O nosso segue o mesmo princípio.
+
+### Fontes oficiais lidas nesta rodada
+- Claude Code (code.claude.com/docs/en/setup): requisitos macOS 13+, Windows 10 1809+,
+  Ubuntu 20.04+, Debian 10+; **4 GB+ de RAM**; x64 ou ARM64. Instalação: `curl -fsSL
+  https://claude.ai/install.sh | bash` (Mac/Linux/WSL), `irm https://claude.ai/install.ps1 | iex`
+  (PowerShell). O app Desktop também roda o Claude Code.
+- Docker Desktop Windows (docs/docker, windows-install): backend WSL 2 padrão, **8 GB de RAM**.
+  Mac (mac-install): **4 GB de RAM**, versão atual do macOS e as duas anteriores; instaladores
+  separados para Apple silicon e Intel.
+- Codespace: feature `ghcr.io/devcontainers/features/docker-in-docker:4` (README do
+  devcontainers/features), imagem `mcr.microsoft.com/devcontainers/python:3.13-trixie` (README do
+  devcontainers/images), feature `ghcr.io/anthropics/devcontainer-features/claude-code:1`, que
+  precisa de Node (por isso `ghcr.io/devcontainers/features/node:1`, como o README dela recomenda).
+
+### Decisões
+- **`scripts/kit.py` é o ponto de entrada único** (`verificar`, `preparar`, `testar`, `buscar`),
+  em Python puro, para rodar igual em Windows, Mac, Linux e Codespace. O `teste-real.sh` virou
+  um atalho para ele.
+- Montagens do Docker com `--mount` (em vez de `-v`), porque caminhos do Windows têm `:`; se o
+  caminho tiver vírgula, o kit volta para `-v`. O contêiner ganha `--name` para poder ser parado
+  se passar de 30 min (matar o `docker run` não para o contêiner).
+- `chown` pós-coleta só no Linux (no Windows/Mac o Docker Desktop já entrega os arquivos com o
+  usuário certo — suposição, não testado).
+- `CLAUDE.md` agora orienta quem **instala e usa** o kit (o Claude do cliente lê esse arquivo).
+  As regras de desenvolvimento foram para `docs/desenvolvimento.md`, sem perder nenhuma.
+- `buscar` grava cada busca em `resultados/busca-AAAAMMDD-HHMMSS/` com `relatorio.html`,
+  `leads-excel.csv` e `leads-tratados.csv`. Profundidade padrão 1; acima de 3, aviso.
+
+### Verificado aqui
+- 46 testes `unittest` passando (inclui 13 novos do `kit.py`: comando montado, flags,
+  montagem somente leitura, vírgula no caminho, mensagens de erro do Docker no Windows/Mac/Linux,
+  limite de 3 consultas no teste).
+- `kit.py verificar` nesta máquina detectou corretamente "Docker instalado, serviço desligado".
+- `kit.py testar --mostrar-comando` e `buscar --mostrar-comando`: comandos montados conferidos
+  (só flags confirmadas com `-h`, `DISABLE_TELEMETRY=1`, sem porta publicada).
+
+### NÃO verificado (precisa do teste real)
+- Nenhuma coleta de verdade pelo `kit.py` (exige Google Maps).
+- `.devcontainer/devcontainer.json` não foi construído aqui: só o JSON foi validado.
+- Windows e Mac: nada testado (RAM via `ctypes`/`sysctl`, `--mount` com caminho do Windows,
+  mensagens de erro reais do Docker Desktop).
+- Se o Docker do Codespace já está pronto no momento do `postCreateCommand` (por isso ele tem
+  `|| true`: se falhar, a pessoa roda `kit.py verificar` de novo).

@@ -1,0 +1,13 @@
+{
+  "name": "kit-leads-maps-br",
+  "image": "mcr.microsoft.com/devcontainers/python:3.13-trixie",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {},
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  },
+  "hostRequirements": {
+    "memory": "8gb"
+  },
+  "postCreateCommand": "python3 -I scripts/kit.py verificar || true"
+}

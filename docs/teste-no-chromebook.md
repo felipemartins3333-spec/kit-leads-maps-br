@@ -1,5 +1,10 @@
 # Teste real no Chromebook (passo a passo)
 
+> **Atualização.** O jeito recomendado agora está em [`instalacao.md`](instalacao.md). Se o seu
+> Chromebook tem pouca memória (2 GB, por exemplo), use o **Codespace** (Caminho A): o
+> Chromebook vira só a tela. Este guia continua valendo para instalar o Docker no Linux Debian.
+> Os comandos `bash scripts/teste-real.sh` abaixo agora chamam o `scripts/kit.py`.
+
 Objetivo: rodar o kit uma vez na sua máquina, com **3 consultas**, para medir tempo e
 quantos contatos vêm preenchidos. No fim você cola um relatório **só com números** no chat.
 
