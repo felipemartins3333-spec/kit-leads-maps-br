@@ -19,9 +19,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python: ["3.13"]
-        include:
-          - os: ubuntu-latest
-            python: "3.9"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -35,3 +32,13 @@ jobs:
         shell: bash
       - name: kit.py testar --mostrar-comando
         run: python -I scripts/kit.py testar --mostrar-comando
+
+  python-minimo:
+    # O Ubuntu do GitHub não oferece mais o Python 3.9; testamos o mínimo num contêiner oficial.
+    name: Python 3.9 (mínimo suportado)
+    runs-on: ubuntu-latest
+    container: python:3.9-slim
+    steps:
+      - uses: actions/checkout@v4
+      - name: Testes
+        run: python -I -m unittest discover -s tests -v

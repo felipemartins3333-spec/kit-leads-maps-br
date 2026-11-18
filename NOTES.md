@@ -219,3 +219,23 @@ mais que o tamanho da imagem.
   mensagens de erro reais do Docker Desktop).
 - Se o Docker do Codespace já está pronto no momento do `postCreateCommand` (por isso ele tem
   `|| true`: se falhar, a pessoa roda `kit.py verificar` de novo).
+
+## Rodada 4 (2026-11-18) — testes em Windows/Mac (CI), formulário de problema, Fase 3b
+
+- **GitHub Actions** (`.github/workflows/testes.yml`): roda os testes em ubuntu, windows e macos
+  (Python 3.13) e o mínimo (Python 3.9) num contêiner `python:3.9-slim`: o 1º run falhou porque
+  o Ubuntu 26.04 do GitHub não oferece mais o 3.9 (`setup-python`: "version '3.9' ... was not found").
+  Nesse 1º run, **Windows, Mac e Linux (3.13) passaram em todos os testes**. Cobre a camada do kit; **não** coleta do Google
+  (os servidores do GitHub não são o ambiente do cliente, e o Mac do Actions não tem Docker).
+- Novos testes que dependem do sistema real: leitura de memória (`/proc/meminfo`, `sysctl`,
+  `ctypes` no Windows), `verificar` sem quebrar, fluxo completo da demo (CSV → Excel com BOM →
+  HTML com CSP) e montagem do comando com caminhos do próprio sistema.
+- **Python mínimo passou de 3.8 para 3.9**, porque 3.9 é o menor que o CI testa (decisão:
+  só prometer o que é testado).
+- **Formulário "Relatar problema"** (`.github/ISSUE_TEMPLATE/problema.yml`): pede sistema, forma
+  de instalação, saída do `verificar` e o `relatorio-teste.txt`; exige confirmar que não há dados
+  de empresas. É o "beta" possível sem outros computadores: os primeiros usuários relatam.
+- **Fase 3b:** comando `/leads-buscar` (pedido em português → plano → confirmação quando é grande
+  → `kit.py buscar` → números + caminhos) e skill `leads-maps-br` (roteia para os comandos).
+- **Decisão de material:** o material público cita só o gosom (motor) e este kit. A linha de
+  "kits consultados como referência" fica no `CREDITS.md`, por transparência.

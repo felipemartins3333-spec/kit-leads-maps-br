@@ -43,6 +43,8 @@ Siga `docs/instalacao.md` (ou o comando `/leads-instalar`). O caminho é sempre:
 
 ## Comandos úteis
 
+No Claude Code: `/leads-instalar` (instalar e testar) e `/leads-buscar dentistas em Salvador BA` (lista).
+
 | Para | Comando |
 |------|---------|
 | Ver o que falta | `python3 scripts/kit.py verificar` |

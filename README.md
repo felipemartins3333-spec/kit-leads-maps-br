@@ -1,5 +1,7 @@
 # kit-leads-maps-br (rascunho)
 
+[![testes](https://github.com/felipemartins3333-spec/kit-leads-maps-br/actions/workflows/testes.yml/badge.svg)](https://github.com/felipemartins3333-spec/kit-leads-maps-br/actions/workflows/testes.yml)
+
 > Em construção. O nome do repositório é provisório.
 
 Kit em português do Brasil que transforma **"segmento + cidade"** em uma lista de empresas
@@ -55,7 +57,7 @@ segmento + cidade  ->  motor de coleta (Docker)  ->  CSV  ->  camada Brasil  -> 
 | 2a | Camada Brasil que não depende de dados reais (tratamento do CSV, relatório HTML, planejador de consultas) | feita, testada só com dados fictícios |
 | 2b | Pontuação de lead, CNPJ (experimental), guardrails de LGPD | pendente: depende das taxas reais de preenchimento |
 | 3a | Instalação: `scripts/kit.py` (Windows/Mac/Linux/Codespace), Codespace pronto, prompt de instalação, comando `/leads-instalar` | feita; **não testada em Windows, Mac nem Codespace real** |
-| 3b | Comandos de busca/relatório e skill em PT-BR | pendente |
+| 3b | Comando `/leads-buscar`, skill `leads-maps-br`, testes automáticos em Linux/Windows/Mac (GitHub Actions) e formulário "Relatar problema" | feita; coleta real ainda não validada |
 
 ## Ver a demonstração (dados 100% fictícios)
 
@@ -75,7 +77,9 @@ python3 -I scripts/gerar_relatorio.py resultados/demo-leads-tratados.csv --saida
 | `scripts/kit.py` | **comando principal**: `verificar`, `preparar`, `testar`, `buscar` |
 | `docs/instalacao.md` | instalação: Codespace, Windows, Mac, Linux, com ou sem Claude |
 | `.devcontainer/` | Codespace já pronto (Python, Docker, Claude Code) |
-| `.claude/commands/leads-instalar.md` | comando `/leads-instalar` do Claude Code |
+| `.claude/commands/` | comandos do Claude Code: `/leads-instalar` e `/leads-buscar` |
+| `.claude/skills/leads-maps-br/` | skill: o Claude entende pedidos como "lista de dentistas em Salvador" |
+| `.github/` | testes automáticos (Linux, Windows, Mac) e formulário "Relatar problema" |
 | `docs/teste-no-chromebook.md` | passo a passo do Docker no Linux Debian (Chromebook) |
 | `scripts/resumo_teste.py` | relatório só com números, que pode ser colado no chat sem expor dados |
 | `scripts/tratar_csv.py` | telefones +55, celular x fixo, link do WhatsApp, deduplicação, CSV para Excel |
