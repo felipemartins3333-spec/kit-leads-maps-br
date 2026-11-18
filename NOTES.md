@@ -287,3 +287,7 @@ Objetivo do Felipe: gravar vídeos com o Claude Desktop tendo só um Chromebook 
 - **Não testado:** o Codespace de gravação nunca foi construído; `downloads.claude.ai` é bloqueado
   na sessão de desenvolvimento, então a chave real e o pacote não foram baixados aqui. Se o Electron
   do Claude Desktop vai abrir dentro do contêiner (sem GPU) é a maior incógnita.
+- **Decisão do Felipe (mesmo dia):** a configuração de gravação SAIU do kit. O kit fica só com o
+  que é do cliente. O "computador Claude na nuvem" (área de trabalho + Claude Desktop) vai para um
+  repositório próprio, reutilizável em qualquer projeto. O vídeo do kit passa a mostrar o fluxo real
+  do cliente: Claude Desktop + prompt de instalação.

@@ -8,7 +8,6 @@ gmaps-output/
 !examples/*.example.json
 !.claude/**/*.json
 !.devcontainer/devcontainer.json
-!.devcontainer/video/devcontainer.json
 *.xlsx
 *.xls
 *.jsonl
