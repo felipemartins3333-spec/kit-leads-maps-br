@@ -131,5 +131,107 @@ class TesteCodespace(unittest.TestCase):
             self.assertIs(dind.get("moby"), False, "Moby não existe para Debian trixie: use moby=false")
 
 
+class TesteVersaoFixa(unittest.TestCase):
+    def test_motor_com_versao_fixa(self):
+        self.assertTrue(kit.IMAGEM.startswith(kit.IMAGEM_REPO + ":v"))
+        self.assertNotIn("latest", kit.IMAGEM)
+        self.assertIn(kit.IMAGEM, kit.montar_comando("/tmp/q.txt", "/tmp/o", "a.csv"))
+
+
+class TesteProgresso(unittest.TestCase):
+    def test_formatar_tempo(self):
+        self.assertEqual(kit.formatar_tempo(40), "40 s")
+        self.assertEqual(kit.formatar_tempo(95), "1 min 35 s")
+
+    def test_texto(self):
+        self.assertIn("até agora: 12", kit.texto_progresso(30, 12))
+        self.assertIn("ainda trabalhando", kit.texto_progresso(30, 0))
+        self.assertIn("ainda trabalhando", kit.texto_progresso(30, None))
+
+    def test_mostra_andamento_e_conta_linhas(self):
+        import io
+        from contextlib import redirect_stdout
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as d:
+            destino = Path(d) / "x.csv"
+            script = ("import time,sys\n"
+                      "p=sys.argv[1]\n"
+                      "open(p,'w').write('title,phone\\nA,1\\n'); time.sleep(1.5)\n"
+                      "open(p,'a').write('B,2\\n'); time.sleep(1.5)\n")
+            falso = [sys.executable, "-c", script, str(destino)]
+            saida = io.StringIO()
+            with mock.patch.object(kit, "montar_comando", return_value=falso), \
+                 mock.patch.object(kit, "devolver_dono"), \
+                 mock.patch.object(kit, "INTERVALO_PROGRESSO_S", 1), redirect_stdout(saida):
+                m = kit.rodar_motor("t", "q.txt", d, "x.csv", "pt-BR", False, 1)
+            self.assertEqual(m["linhas_csv"], 2)
+            self.assertEqual(m["codigo_saida"], 0)
+            self.assertIn("até agora", saida.getvalue())
+
+
+class TesteAtualizar(unittest.TestCase):
+    def _git(self, *args, cwd):
+        import subprocess
+        subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True)
+
+    def test_pasta_sem_git(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(kit.atualizar_kit(d)[0], "zip")
+
+    @unittest.skipUnless(__import__("shutil").which("git"), "precisa do git")
+    def test_ja_atual_atualizado_e_alterado(self):
+        with tempfile.TemporaryDirectory() as d:
+            origem, copia = Path(d) / "origem", Path(d) / "copia"
+            origem.mkdir()
+            ident = ["-c", "user.name=t", "-c", "user.email=t@example.com"]
+            self._git("init", "-q", "-b", "main", cwd=origem)
+            (origem / "a.txt").write_text("1")
+            self._git("add", ".", cwd=origem)
+            self._git(*ident, "commit", "-q", "-m", "1", cwd=origem)
+            self._git("clone", "-q", str(origem), str(copia), cwd=d)
+            self.assertEqual(kit.atualizar_kit(copia)[0], "ja_atual")
+            (origem / "a.txt").write_text("2")
+            self._git(*ident, "commit", "-q", "-am", "2", cwd=origem)
+            self.assertEqual(kit.atualizar_kit(copia)[0], "atualizado")
+            self.assertEqual((copia / "a.txt").read_text(), "2")
+            (copia / "a.txt").write_text("mexi")
+            self.assertEqual(kit.atualizar_kit(copia)[0], "alterado")
+            self.assertEqual((copia / "a.txt").read_text(), "mexi", "não pode apagar mudanças da pessoa")
+
+
+class TesteLimpar(unittest.TestCase):
+    def _rodar_falso(self, chamadas):
+        from types import SimpleNamespace
+
+        def rodar(cmd, **kw):
+            chamadas.append(cmd)
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+        return rodar
+
+    def test_sem_confirmacao_nao_remove_nada(self):
+        from unittest import mock
+        chamadas = []
+        imagens = [(kit.IMAGEM, "abc", "2GB")]
+        with mock.patch.object(kit, "checar_docker", return_value=(True, "Docker")), \
+             mock.patch.object(kit, "listar_imagens_motor", return_value=imagens), \
+             mock.patch.object(kit, "rodar", side_effect=self._rodar_falso(chamadas)), \
+             mock.patch("builtins.input", return_value="não"):
+            self.assertEqual(kit.main(["limpar"]), 1)
+        self.assertFalse(any(c[:3] == ["docker", "image", "rm"] for c in chamadas))
+        self.assertFalse(any(c[:3] == ["docker", "volume", "rm"] for c in chamadas))
+
+    def test_antigas_preserva_versao_atual(self):
+        from unittest import mock
+        chamadas = []
+        imagens = [(kit.IMAGEM, "abc", "2GB"), (kit.IMAGEM_REPO + ":latest", "def", "2GB")]
+        with mock.patch.object(kit, "checar_docker", return_value=(True, "Docker")), \
+             mock.patch.object(kit, "listar_imagens_motor", return_value=imagens), \
+             mock.patch.object(kit, "rodar", side_effect=self._rodar_falso(chamadas)):
+            self.assertEqual(kit.main(["limpar", "--antigas", "--sim"]), 0)
+        removidas = [c[3] for c in chamadas if c[:3] == ["docker", "image", "rm"]]
+        self.assertEqual(removidas, [kit.IMAGEM_REPO + ":latest"])
+        self.assertFalse(any(c[:3] == ["docker", "volume", "rm"] for c in chamadas), "--antigas não mexe no cache")
+
+
 if __name__ == "__main__":
     unittest.main()

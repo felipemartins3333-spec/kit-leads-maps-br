@@ -40,7 +40,7 @@ Deixe o kit funcionando neste computador, do começo ao fim:
 
 Quando terminar, me diga:
 - o que foi instalado (só o que você instalou de verdade);
-- onde ficou a pasta do kit;
+- onde ficou a pasta do kit e como atualizá-lo no futuro ("kit.py atualizar");
 - duas formas de usar: pelo terminal (um comando de busca pronto para copiar) e pedindo
   para você em português (o comando /leads-buscar);
 - onde abrir o resultado de uma busca: o relatório HTML (duplo clique) e a planilha para Excel;
@@ -96,7 +96,7 @@ python3 -I scripts/gerar_relatorio.py resultados/demo-leads-tratados.csv --saida
 
 | Arquivo | Para quê |
 |---------|----------|
-| `scripts/kit.py` | **comando principal**: `verificar`, `preparar`, `testar`, `buscar` |
+| `scripts/kit.py` | **comando principal**: `verificar`, `preparar`, `testar`, `buscar`, `atualizar`, `limpar` |
 | `docs/instalacao.md` | instalação: Codespace, Windows, Mac, Linux, com ou sem Claude |
 | `.devcontainer/` | Codespace já pronto (Python, Docker, Claude Code) |
 | `.claude/commands/` | comandos do Claude Code: `/leads-instalar` e `/leads-buscar` |

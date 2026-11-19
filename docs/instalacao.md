@@ -155,7 +155,7 @@ Deixe o kit funcionando neste computador, do começo ao fim:
 
 Quando terminar, me diga:
 - o que foi instalado (só o que você instalou de verdade);
-- onde ficou a pasta do kit;
+- onde ficou a pasta do kit e como atualizá-lo no futuro ("kit.py atualizar");
 - duas formas de usar: pelo terminal (um comando de busca pronto para copiar) e pedindo
   para você em português (o comando /leads-buscar);
 - onde abrir o resultado de uma busca: o relatório HTML (duplo clique) e a planilha para Excel;
@@ -186,6 +186,28 @@ O resultado fica em `resultados/busca-AAAAMMDD-HHMMSS/`:
 
 ---
 
+## Atualizar
+
+```bash
+python3 scripts/kit.py atualizar
+```
+
+Baixa a versão nova do kit (se a pasta veio pelo `git clone`) e a versão do motor que ela usa. O kit
+usa sempre uma **versão fixa e testada** do motor; ele só muda quando o kit é atualizado. Se você
+baixou pelo ZIP, baixe o ZIP de novo e copie a sua pasta `resultados/` para a pasta nova.
+
+## Liberar espaço ou desinstalar
+
+```bash
+python3 scripts/kit.py limpar
+```
+
+Mostra o que vai remover (o motor, ~2 GB, e o cache dele) e só remove depois que você digitar `sim`.
+A pasta `resultados/` (as suas listas) **não** é apagada. Para remover só versões antigas do motor
+depois de atualizar: `python3 scripts/kit.py limpar --antigas`.
+
+---
+
 ## Problemas comuns
 
 | Mensagem | O que fazer |
@@ -194,5 +216,6 @@ O resultado fica em `resultados/busca-AAAAMMDD-HHMMSS/`:
 | "O Docker Desktop está instalado, mas não está aberto" | Abra o Docker Desktop, espere iniciar e rode de novo. |
 | "o serviço não está ligado" (Linux) | `sudo systemctl start docker` |
 | "não tem permissão" (Linux) | Passo 4 de `docs/teste-no-chromebook.md` (grupo `docker`), depois feche e abra o terminal. |
-| "Falta espaço" | Libere pelo menos 5 GB e rode de novo. |
+| "Falta espaço" | Libere pelo menos 5 GB e rode de novo (`kit.py limpar --antigas` remove versões velhas do motor). |
+| Parece travado durante a busca | O kit mostra o andamento a cada 20 s. Se quiser parar, aperte Ctrl+C: o motor é parado e o que já foi coletado fica em `resultados/`. |
 | "Nenhuma linha coletada" | Veja as causas que o kit mostra: sem internet, rede bloqueando o Google, Google limitando o acesso (mais comum na nuvem) ou pouca memória. Espere um pouco e tente com menos consultas. |

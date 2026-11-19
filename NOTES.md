@@ -291,3 +291,26 @@ Objetivo do Felipe: gravar vídeos com o Claude Desktop tendo só um Chromebook 
   que é do cliente. O "computador Claude na nuvem" (área de trabalho + Claude Desktop) vai para um
   repositório próprio, reutilizável em qualquer projeto. O vídeo do kit passa a mostrar o fluxo real
   do cliente: Claude Desktop + prompt de instalação.
+
+## Rodada 7 (2026-11-19) — comparação com gosom e vzbaggio; atualizar, limpar, progresso, versão fixa
+
+- **Comparação (ideias, sem copiar):** faltava em nós (A) atualizar o kit/motor, (C) mostrar
+  andamento durante a coleta, (D) limpar/desinstalar e (E) fixar a versão do motor; (B) redes
+  sociais (Instagram/Facebook/LinkedIn lidos do site) fica para a Fase 2b, opcional. Grade de
+  coordenadas, `-resume` e proxies ficam fora por agora. O prompt do vzbaggio não traz "como
+  atualizar"; o nosso agora traz.
+- **(E) Versão fixa:** Docker Hub em 19/11/2026: `latest` = v1.19.0 (15/11), v1.18.3, **v1.18.2**
+  (digest 6af44cb9f339, a mesma que baixamos e cujo `-h` conferimos). arm64 existe a partir da
+  v1.18.0 (v1.17.x só amd64). O kit fixa `gosom/google-maps-scraper:v1.18.2`; o `latest` já tinha
+  mudado 4 dias depois do nosso teste, o que confirma o risco.
+- **(C) Progresso:** `Popen` + espera de 20 s mostrando tempo e linhas no CSV (se o motor gravar
+  durante a coleta; não sabemos se grava aos poucos ou só no fim — a mensagem cobre os dois casos).
+  Ctrl+C agora para o contêiner (antes, matar o `docker run` deixava o motor rodando).
+- **(A) `kit.py atualizar`:** `git pull --ff-only` só se não houver arquivos do kit alterados;
+  pasta de ZIP recebe instrução para baixar de novo; depois de atualizar, o `preparar` roda com o
+  código novo (que pode fixar outra versão do motor).
+- **(D) `kit.py limpar`:** lista o que vai remover e exige digitar "sim" (ou `--sim`); `--antigas`
+  remove só versões que não são a fixa; nunca apaga `resultados/`.
+- 60 testes passando (8 novos: versão fixa, progresso com processo falso escrevendo CSV,
+  atualizar com repositório git de teste incluindo "não apagar mudanças da pessoa", limpar sem
+  confirmação não remove nada, `--antigas` preserva a versão atual).

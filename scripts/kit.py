@@ -8,6 +8,8 @@ Comandos:
               relatório só com números (resultados/relatorio-teste.txt)
   buscar      busca de verdade: segmentos x cidades (ou um arquivo de consultas) ->
               CSV tratado + CSV para Excel + relatório HTML
+  atualizar   baixa a versão nova do kit (git) e a versão do motor que ela usa
+  limpar      remove o motor do computador (libera ~2 GB); pede confirmação
 
 Exemplos (no Windows, troque "python3" por "py"):
   python3 scripts/kit.py verificar
@@ -15,12 +17,15 @@ Exemplos (no Windows, troque "python3" por "py"):
   python3 scripts/kit.py testar
   python3 scripts/kit.py buscar --segmentos "clínicas odontológicas" --cidades "Vitória da Conquista BA"
   python3 scripts/kit.py buscar --consultas minhas-consultas.txt --email
+  python3 scripts/kit.py atualizar
+  python3 scripts/kit.py limpar
 
 Aviso: coletar dados do Google Maps de forma automática pode contrariar os termos do
 Google, e contatos de empresas podem ser dados pessoais (LGPD). Comece pequeno.
 Só usa a biblioteca padrão do Python.
 """
 import argparse
+import csv
 import os
 import platform
 import shutil
@@ -38,13 +43,18 @@ import planejar_consultas  # noqa: E402
 import resumo_teste  # noqa: E402
 import tratar_csv  # noqa: E402
 
-IMAGEM = "gosom/google-maps-scraper"
+IMAGEM_REPO = "gosom/google-maps-scraper"
+# Versão FIXA do motor: a mesma em que todas as flags usadas foram conferidas com -h.
+# Trocar só depois de testar a nova versão (o "latest" muda sem aviso).
+VERSAO_MOTOR = "v1.18.2"
+IMAGEM = f"{IMAGEM_REPO}:{VERSAO_MOTOR}"
 VOLUME_CACHE = "gmaps-playwright-cache"
 MIN_LIVRE_GB = 5            # a imagem tem ~2 GB; folga para o Docker descompactar (estimativa nossa)
 RAM_RECOMENDADA_MB = 3000   # abaixo disso o navegador do motor pode travar (estimativa nossa)
 LIMITE_TESTE = 3
 INATIVIDADE = "3m"          # flag -exit-on-inactivity do motor (confirmada com -h)
 TEMPO_MAXIMO_S = 30 * 60    # trava de segurança por execução do motor
+INTERVALO_PROGRESSO_S = 20  # a cada quantos segundos mostrar o progresso
 CONSULTAS_TESTE = RAIZ / "examples" / "consultas-teste.txt"
 PASTA_RESULTADOS = RAIZ / "resultados"
 
@@ -96,6 +106,27 @@ def livre_gb(pasta):
         return shutil.disk_usage(str(pasta)).free // (1024 ** 3)
     except OSError:
         return 0
+
+
+def formatar_tempo(segundos):
+    segundos = int(segundos)
+    if segundos < 60:
+        return f"{segundos} s"
+    return f"{segundos // 60} min {segundos % 60:02d} s"
+
+
+def contar_parcial(caminho):
+    """Conta as linhas de um CSV que o motor ainda está escrevendo. None se não der para ler agora."""
+    try:
+        return len(resumo_teste.ler_linhas(caminho))
+    except (csv.Error, OSError, UnicodeDecodeError):
+        return None
+
+
+def texto_progresso(segundos, linhas):
+    if linhas:
+        return f"    ... {formatar_tempo(segundos)} | empresas no arquivo até agora: {linhas}"
+    return f"    ... {formatar_tempo(segundos)} | ainda trabalhando (as empresas podem aparecer só no fim)"
 
 
 def contar_consultas(caminho):
@@ -209,7 +240,7 @@ def verificar(silencioso=False):
         out(f"[ok] Docker: {msg}")
         info["imagem"] = imagem_presente()
         if info["imagem"]:
-            out(f"[ok] Imagem do motor ({IMAGEM}) já baixada.")
+            out(f"[ok] Motor ({IMAGEM}) já baixado.")
         elif livre < MIN_LIVRE_GB:
             out(f"[falta] Espaço: a imagem do motor tem ~2 GB e pedimos {MIN_LIVRE_GB} GB livres; há {livre} GB.")
             info["faltas"].append("espaço em disco")
@@ -313,15 +344,28 @@ def rodar_motor(nome_teste, consultas, pasta, arquivo, idioma, email, profundida
     if destino.exists():
         destino.unlink()
     log = Path(pasta) / (Path(arquivo).stem + ".log")
-    dizer("    coletando... (o terminal pode ficar parado vários minutos; é normal)")
+    dizer(f"    coletando... (mostro o andamento a cada {INTERVALO_PROGRESSO_S} s; Ctrl+C para parar)")
     inicio = time.monotonic()
     with log.open("w", encoding="utf-8", errors="replace") as f:
+        proc = subprocess.Popen(cmd, stdout=f, stderr=subprocess.STDOUT)
         try:
-            r = subprocess.run(cmd, stdout=f, stderr=subprocess.STDOUT, timeout=TEMPO_MAXIMO_S)
-            codigo = r.returncode
-        except subprocess.TimeoutExpired:
-            rodar(["docker", "stop", nome_conteiner], timeout=120)
-            codigo = "tempo_esgotado"
+            while True:
+                try:
+                    proc.wait(timeout=INTERVALO_PROGRESSO_S)
+                    codigo = proc.returncode
+                    break
+                except subprocess.TimeoutExpired:
+                    decorrido = time.monotonic() - inicio
+                    if decorrido > TEMPO_MAXIMO_S:
+                        parar_conteiner(nome_conteiner, proc)
+                        codigo = "tempo_esgotado"
+                        break
+                    dizer(texto_progresso(decorrido, contar_parcial(destino)))
+        except KeyboardInterrupt:
+            # Parar o "docker run" não para o contêiner: paramos explicitamente.
+            parar_conteiner(nome_conteiner, proc)
+            devolver_dono(pasta)
+            raise
     segundos = int(round(time.monotonic() - inicio))
     devolver_dono(pasta)
     # O motor sai com código 0 mesmo sem coletar nada: contamos as linhas do CSV.
@@ -329,6 +373,17 @@ def rodar_motor(nome_teste, consultas, pasta, arquivo, idioma, email, profundida
     dizer(f"    tempo: {segundos}s | linhas coletadas: {linhas} | código de saída do motor: {codigo}")
     return {"teste": nome_teste, "lang": idioma, "email": int(email), "segundos": segundos,
             "linhas_csv": linhas, "codigo_saida": codigo, "arquivo": arquivo}
+
+
+def parar_conteiner(nome, proc):
+    try:
+        rodar(["docker", "stop", nome], timeout=120)
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    try:
+        proc.wait(timeout=60)
+    except subprocess.TimeoutExpired:
+        proc.kill()
 
 
 def explicar_zero_linhas(pasta):
@@ -482,6 +537,108 @@ def cmd_buscar(a):
     return 0
 
 
+# ----------------------------------------------------------------- atualizar
+
+def atualizar_kit(raiz):
+    """Atualiza a pasta do kit pelo git. Devolve (situação, mensagem).
+    situação: 'atualizado', 'ja_atual', 'zip', 'alterado', 'erro'."""
+    raiz = Path(raiz)
+    if not (raiz / ".git").exists() or not shutil.which("git"):
+        return "zip", ("Esta pasta não veio pelo git (provavelmente pelo ZIP). Para atualizar, baixe o ZIP "
+                       "de novo pelo GitHub e copie a sua pasta resultados/ para a pasta nova.")
+    alterados = rodar(["git", "-C", str(raiz), "status", "--porcelain", "--untracked-files=no"], timeout=60)
+    if alterados.stdout.strip():
+        return "alterado", ("Você alterou arquivos do kit nesta pasta; para não apagar nada, não atualizei. "
+                            "Peça ajuda ao Claude para guardar essas mudanças antes.")
+    antes = rodar(["git", "-C", str(raiz), "rev-parse", "HEAD"], timeout=60).stdout.strip()
+    r = rodar(["git", "-C", str(raiz), "pull", "--ff-only"], timeout=300)
+    if r.returncode != 0:
+        return "erro", "Não consegui atualizar pelo git. Mensagem: " + (r.stderr or r.stdout).strip()[:300]
+    depois = rodar(["git", "-C", str(raiz), "rev-parse", "HEAD"], timeout=60).stdout.strip()
+    if antes == depois:
+        return "ja_atual", "O kit já estava na versão mais nova."
+    return "atualizado", "Kit atualizado."
+
+
+def cmd_atualizar(_a):
+    dizer("=== Kit de leads — atualizar ===")
+    situacao, msg = atualizar_kit(RAIZ)
+    dizer(f"[kit] {msg}")
+    if situacao == "atualizado":
+        # O código novo pode usar outra versão do motor: quem prepara é o kit.py novo.
+        dizer("Preparando o motor na versão que o kit novo usa...")
+        return subprocess.run([sys.executable, "-I", str(RAIZ / "scripts" / "kit.py"), "preparar"]).returncode
+    if situacao in ("erro", "alterado"):
+        return 1
+    info = verificar(silencioso=True)
+    if not info["docker_ok"]:
+        dizer(f"[motor] Docker indisponível agora; quando estiver ok, rode: {comando_python()} scripts/kit.py preparar")
+        return 1
+    if not garantir_imagem(info):
+        return 1
+    dizer(f"[motor] Em dia: {IMAGEM}.")
+    dizer(f"Versões antigas do motor ocupam espaço. Para remover: {comando_python()} scripts/kit.py limpar --antigas")
+    return 0
+
+
+# -------------------------------------------------------------------- limpar
+
+def listar_imagens_motor():
+    """Lista [(nome, id, tamanho)] das imagens do motor neste computador."""
+    r = rodar(["docker", "image", "ls", IMAGEM_REPO, "--format", "{{.Repository}}:{{.Tag}}|{{.ID}}|{{.Size}}"],
+              timeout=60)
+    itens = []
+    for ln in r.stdout.splitlines():
+        partes = ln.strip().split("|")
+        if len(partes) == 3:
+            nome, ident, tamanho = partes
+            itens.append((ident if nome.endswith(":<none>") else nome, ident, tamanho))
+    return itens
+
+
+def cmd_limpar(a):
+    dizer("=== Kit de leads — limpar o motor ===")
+    ok, msg = checar_docker()
+    if not ok:
+        dizer(f"[falta] {msg}")
+        return 1
+    imagens = listar_imagens_motor()
+    if a.antigas:
+        imagens = [i for i in imagens if i[0] != IMAGEM]
+    volume = False
+    if not a.antigas:
+        volume = rodar(["docker", "volume", "inspect", VOLUME_CACHE], timeout=60).returncode == 0
+    if not imagens and not volume:
+        dizer("Nada para remover.")
+        return 0
+    dizer("Vou remover do Docker:")
+    for nome, _ident, tamanho in imagens:
+        dizer(f"  - motor {nome} ({tamanho})")
+    if volume:
+        dizer(f"  - cache do navegador do motor (volume {VOLUME_CACHE})")
+    dizer("A pasta resultados/ NÃO será apagada: são as suas listas. Apague à mão se quiser.")
+    if not a.sim:
+        try:
+            resposta = input("Digite 'sim' para remover: ").strip().lower()
+        except EOFError:
+            resposta = ""
+        if resposta != "sim":
+            dizer("Cancelado. Nada foi removido.")
+            return 1
+    falhas = 0
+    for nome, _ident, _tamanho in imagens:
+        r = rodar(["docker", "image", "rm", nome], timeout=300)
+        dizer(("[ok] removido: " if r.returncode == 0 else "[erro] não removido: ") + nome)
+        falhas += r.returncode != 0
+    if volume:
+        r = rodar(["docker", "volume", "rm", VOLUME_CACHE], timeout=120)
+        dizer(("[ok] removido: " if r.returncode == 0 else "[erro] não removido: ") + VOLUME_CACHE)
+        falhas += r.returncode != 0
+    if not a.antigas:
+        dizer(f"Para usar o kit de novo depois: {comando_python()} scripts/kit.py preparar")
+    return 1 if falhas else 0
+
+
 # ---------------------------------------------------------------------- main
 
 def main(argv=None):
@@ -508,8 +665,13 @@ def main(argv=None):
                    help=f"máximo de consultas (padrão {planejar_consultas.LIMITE_PADRAO})")
     b.add_argument("--ddd-padrao", help="DDD para telefones que vierem sem DDD (ex.: 77)")
     b.add_argument("--mostrar-comando", action="store_true", help="só mostra o comando, não executa")
+    sub.add_parser("atualizar", help="baixa a versão nova do kit e a versão do motor que ela usa")
+    lp = sub.add_parser("limpar", help="remove o motor do computador (libera ~2 GB)")
+    lp.add_argument("--antigas", action="store_true", help="remove só versões antigas do motor")
+    lp.add_argument("--sim", action="store_true", help="não pergunta (para quem já confirmou)")
     a = ap.parse_args(argv)
-    acoes = {"verificar": cmd_verificar, "preparar": cmd_preparar, "testar": cmd_testar, "buscar": cmd_buscar}
+    acoes = {"verificar": cmd_verificar, "preparar": cmd_preparar, "testar": cmd_testar, "buscar": cmd_buscar,
+             "atualizar": cmd_atualizar, "limpar": cmd_limpar}
     if a.comando not in acoes:
         ap.print_help()
         return 2

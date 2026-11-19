@@ -19,12 +19,12 @@ Siga o `CLAUDE.md` e o `docs/instalacao.md` deste repositório. Fale em portugu�
 3. **Preparar o motor.** Rode `python3 scripts/kit.py preparar` (baixa ~2 GB; avise antes).
 
 4. **Teste pequeno.** Avise uma vez que coletar do Google Maps pode contrariar os termos do Google e que
-   contatos de empresas envolvem LGPD. Rode `python3 scripts/kit.py testar` (no máximo 3 consultas). Ele pode
-   ficar vários minutos em silêncio: avise que é normal.
+   contatos de empresas envolvem LGPD. Rode `python3 scripts/kit.py testar` (no máximo 3 consultas). Ele mostra o
+   andamento a cada 20 segundos e pode levar vários minutos: avise que é normal.
 
 5. **Entregar.** Diga:
    - o que foi instalado (só o que você instalou de fato);
-   - onde ficou a pasta do kit;
+   - onde ficou a pasta do kit e que, no futuro, `kit.py atualizar` traz a versão nova;
    - o resultado do teste, usando só os números de `resultados/relatorio-teste.txt` (sem nomes, telefones
      ou e-mails de empresas). Se vier 0 linhas, explique as causas que o kit mostrou;
    - como fazer uma busca simples, com um exemplo do `docs/instalacao.md` ("Como fazer uma busca");
