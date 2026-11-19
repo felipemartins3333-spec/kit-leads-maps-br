@@ -322,5 +322,13 @@ class TesteRefinar(unittest.TestCase):
         self.assertEqual(kit.main(["buscar", "--segmentos", "a", "--cidades", "X BA", "--quantidade", "0"]), 2)
 
 
+class TesteVersao(unittest.TestCase):
+    def test_ignora_moldura(self):
+        saida = ("╔══════════╗\n║ 🌍 Google Maps Scraper ║\n╚══════════╝\n\nv1.18.2-146aefe\n"
+                 "╔══╗\n╚══╝\n")
+        self.assertEqual(kit.extrair_versao(saida), "v1.18.2-146aefe")
+        self.assertEqual(kit.extrair_versao("╚═════╝"), "desconhecida")
+
+
 if __name__ == "__main__":
     unittest.main()

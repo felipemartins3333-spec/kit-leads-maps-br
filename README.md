@@ -75,7 +75,7 @@ segmento + cidade  ->  motor de coleta (Docker)  ->  CSV  ->  camada Brasil  -> 
 | Fase | O quê | Situação |
 |------|-------|----------|
 | 0 | Fundação do repositório | feita |
-| 1 | Motor rodando e validado | **parcial**: imagem baixada e flags confirmadas; coleta real pendente (a nuvem não alcança o Google Maps). O teste real será feito num Chromebook |
+| 1 | Motor rodando e validado | **feita**: teste real em 19/11/2026 (Claude Desktop + prompt oficial, num Codespace): 60 empresas em 139 s sem e-mail; 56 em 328 s com e-mail; 100% com telefone, ~70% com site, 21% com e-mail. Detalhes em `NOTES.md` |
 | 2a | Camada Brasil que não depende de dados reais (tratamento do CSV, relatório HTML, planejador de consultas) | feita, testada só com dados fictícios |
 | 2b | Pontuação de lead, CNPJ (experimental), guardrails de LGPD | pendente: depende das taxas reais de preenchimento |
 | 3a | Instalação: `scripts/kit.py` (Windows/Mac/Linux/Codespace), Codespace pronto, prompt de instalação, comando `/leads-instalar` | feita; **não testada em Windows, Mac nem Codespace real** |

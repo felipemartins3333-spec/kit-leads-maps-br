@@ -385,3 +385,33 @@ Objetivo do Felipe: gravar vídeos com o Claude Desktop tendo só um Chromebook 
   mesma página diz que Home roda containers Linux. **Não testado** em Windows Home.
 - 73 testes passando (8 novos: escolher melhores, filtrar categorias, contar categorias, refinar com
   e sem quantidade, pasta sem bruto, quantidade inválida).
+
+## Rodada 11 (2026-11-19) — FASE 1 CONCLUÍDA: primeiro teste real (Claude Desktop no Codespace)
+
+Executado pelo Felipe: Claude Desktop (Linux, beta) dentro do Codespace `claude-desktop-nuvem`,
+com o prompt oficial colado. O Claude clonou o kit, rodou `verificar` (Python 3.13, Docker 29.10,
+7,9 GB de RAM, 23 GB livres; só faltava o motor), `preparar` (baixou `gosom/google-maps-scraper:v1.18.2`)
+e `testar`. Não precisou instalar nada no sistema nem pedir confirmação.
+
+**Medições (3 consultas, `-depth 1`, sem proxy, idioma pt-BR, servidor na nuvem — Azure, EUA):**
+
+| | Teste 1 (sem e-mail) | Teste 2 (com e-mail) |
+|---|---|---|
+| Linhas de dados | 60 | 56 |
+| Com telefone | 60 (100%) | 56 (100%) |
+| Com site | 42 (70%) | 40 (71%) |
+| Com e-mail | 0 | 12 (21%) |
+| Com nota | 60 (100%) | 56 (100%) |
+| `place_id` repetidos | 0 | 0 |
+| Tempo | 139 s | 328 s |
+
+- **Confirmado:** `-lang pt-BR` funciona (o teste não precisou cair para `pt`); a coleta funciona a
+  partir de IP de nuvem, pelo menos em escala pequena; o e-mail só vem com `-email` e deixa a coleta
+  ~2,4× mais lenta neste teste (328 s vs 139 s); o prompt oficial instala e testa sem intervenção.
+- **Limites honestos (para o material):** 3 consultas e profundidade 1 trouxeram ~20 empresas por
+  consulta; e-mail apareceu em ~1 de cada 5 empresas; ~30% sem site. Números de UMA execução, na
+  nuvem; não são promessa.
+- **Defeito encontrado e corrigido:** a "versão do motor" no relatório mostrava a moldura decorativa
+  que o motor imprime (o kit pegava a última linha da saída). Agora extrai o padrão `vX.Y.Z`.
+- **Ainda não medido:** taxa de celular x fixo e de WhatsApp nos dados reais (o relatório do teste
+  conta só os campos brutos do motor) — virá da primeira busca com `kit.py buscar`.

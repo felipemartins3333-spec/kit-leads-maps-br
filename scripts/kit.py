@@ -247,10 +247,15 @@ def imagem_presente():
 def versao_motor():
     try:
         r = rodar(["docker", "run", "--rm", "-e", "DISABLE_TELEMETRY=1", IMAGEM, "-version"], timeout=120)
-        linhas = [l for l in (r.stdout + r.stderr).splitlines() if l.strip()]
-        return linhas[-1].strip() if linhas else "desconhecida"
+        return extrair_versao(r.stdout + "\n" + r.stderr)
     except (OSError, subprocess.TimeoutExpired):
         return "desconhecida"
+
+
+def extrair_versao(texto):
+    """O motor imprime uma moldura decorativa junto da versão; pegamos só o 'v1.2.3...'."""
+    m = re.search(r"\bv\d+\.\d+\.\d+[\w.-]*", texto or "")
+    return m.group(0) if m else "desconhecida"
 
 
 def digest_imagem():
