@@ -20,6 +20,7 @@ português simples, um passo por vez. As regras completas estão no `CLAUDE.md` 
 
 ## Comandos válidos (não invente outros)
 
+- `python3 scripts/kit.py abrir` (tela no navegador; mostre o link à pessoa, que tem a chave de acesso)
 - `python3 scripts/kit.py verificar` · `preparar` · `testar`
 - `python3 scripts/kit.py buscar --segmentos "..." --cidades "Cidade UF" [--email] [--profundidade N] [--ddd-padrao NN]`
 - `python3 scripts/kit.py buscar --consultas arquivo.txt` (uma consulta por linha)

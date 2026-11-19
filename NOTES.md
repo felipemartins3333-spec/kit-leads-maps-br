@@ -415,3 +415,25 @@ e `testar`. Não precisou instalar nada no sistema nem pedir confirmação.
   que o motor imprime (o kit pegava a última linha da saída). Agora extrai o padrão `vX.Y.Z`.
 - **Ainda não medido:** taxa de celular x fixo e de WhatsApp nos dados reais (o relatório do teste
   conta só os campos brutos do motor) — virá da primeira busca com `kit.py buscar`.
+
+## Rodada 12 (2026-11-19) — tela de busca no navegador (pedido do Felipe: "um link, como o do vzbaggio")
+
+- Duas formas oficiais de uso: **tela no navegador** (`kit.py abrir`) e **Claude** (`/leads-buscar`).
+  O terminal continua existindo, documentado como "avançado".
+- `scripts/interface.py` (biblioteca padrão: `http.server`, `ThreadingHTTPServer`) + `modelo_interface.html`
+  (mesma identidade visual). Formulário: segmentos, cidade, bairros (viram "Bairro, Cidade UF"),
+  quantidade 20/60/120/Todas (120 e Todas usam profundidade 2), e-mail. Andamento ao vivo (tempo,
+  empresas até agora), resultado com números e atalhos, lista de buscas.
+- **Decisão de segurança (muda a regra 8 do CLAUDE.md, que dizia "nenhuma porta"):** servidor SÓ em
+  `127.0.0.1` (portas 8765–8774); link com chave aleatória (`secrets.token_urlsafe`) que vira cookie
+  `HttpOnly; SameSite=Strict`; todo pedido exige o cookie; o POST exige também o cabeçalho
+  `X-Kit-Chave` (outro site não consegue mandar — proteção contra CSRF); checagem do `Host`
+  (contra DNS rebinding; no Codespace aceita `*.app.github.dev`); arquivos só de dentro de
+  `resultados/` e só `.html`/`.csv`; CSP sem rede externa e `frame-ancestors 'none'`; uma busca por vez;
+  a busca roda como `kit.py buscar` (mesmas flags confirmadas, versão fixa, telemetria desligada).
+- No Codespace o link usa `CODESPACE_NAME` + `GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN` (porta privada).
+  **Não testado num Codespace real** nem em Windows/Mac.
+- Verificado aqui: 13 testes novos (87 no total) incluindo acesso sem chave, chave errada, Host estranho,
+  POST sem cabeçalho, travessia de pasta (`../`, `%2e%2e`), uma busca por vez, validação; no Chromium,
+  fluxo completo com uma coleta simulada (CSV fictício no lugar do Google), 0 requisições externas,
+  0 rolagem lateral no celular. Corrigidos: chave liga/desliga que não aparecia e desalinhamento.

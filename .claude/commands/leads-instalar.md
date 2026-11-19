@@ -30,7 +30,7 @@ Siga o `CLAUDE.md` e o `docs/instalacao.md` deste repositório. Fale em portugu�
    - onde ficou a pasta do kit e que, no futuro, `kit.py atualizar` traz a versão nova;
    - o resultado do teste, usando só os números de `resultados/relatorio-teste.txt` (sem nomes, telefones
      ou e-mails de empresas). Se vier 0 linhas, explique as causas que o kit mostrou;
-   - como fazer uma busca simples, com um exemplo do `docs/instalacao.md` ("Como fazer uma busca");
+   - as duas formas de usar: a tela (`kit.py abrir`, que mostra um link) e o `/leads-buscar` em português;
    - onde abrir o relatório: `resultados/busca-.../relatorio.html` (duplo clique, funciona sem internet).
 
 Não invente comandos nem flags. Se algo falhar e o guia não cobrir, explique o erro em português simples

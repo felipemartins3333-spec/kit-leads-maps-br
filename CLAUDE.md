@@ -40,18 +40,22 @@ Siga `docs/instalacao.md` (ou o comando `/leads-instalar`). O caminho é sempre:
 7. **Dados ficam na máquina.** Tudo vai para `resultados/` (fora do git). Não envie listas para
    serviços externos e não cole a lista inteira no chat sem o usuário pedir. Para pedir ajuda,
    use `resultados/relatorio-teste.txt`, que só tem números.
-8. **Rede.** O kit não abre porta nenhuma. Não suba a interface web do motor; se o usuário
-   insistir, publique só em `127.0.0.1`.
+8. **Rede.** A única porta que o kit abre é a da própria tela (`kit.py abrir`), só em `127.0.0.1` e
+   protegida por uma chave no link. Nunca publique em `0.0.0.0` nem compartilhe o link (ele tem a chave).
+   Não suba a interface web do motor.
 9. **Telemetria do motor desligada:** o `kit.py` já passa `DISABLE_TELEMETRY=1`.
 10. **Versão do motor fixa.** O kit usa uma versão testada do motor (`VERSAO_MOTOR` no `kit.py`). Não troque
     para "latest" nem para outra versão; para receber versões novas, use `kit.py atualizar`.
 
 ## Comandos úteis
 
-No Claude Code: `/leads-instalar` (instalar e testar) e `/leads-buscar dentistas em Salvador BA` (lista).
+**Duas formas de usar:** (1) a **tela no navegador**: `python3 scripts/kit.py abrir` mostra um link; quem usa
+preenche segmento, cidade, bairros e quantidade e acompanha o andamento; (2) **pedir ao Claude**:
+`/leads-buscar dentistas em Salvador BA`. Para instalar e testar: `/leads-instalar`.
 
 | Para | Comando |
 |------|---------|
+| Abrir a tela de busca no navegador | `python3 scripts/kit.py abrir` (mostra o link; Ctrl+C fecha) |
 | Ver o que falta | `python3 scripts/kit.py verificar` |
 | Baixar o motor | `python3 scripts/kit.py preparar` |
 | Teste pequeno | `python3 scripts/kit.py testar` |

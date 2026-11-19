@@ -14,7 +14,7 @@ Kit brasileiro de geração de leads com Google Maps. Tudo em português do Bras
 2. **Nada de flag inventada.** Confirmar toda flag com `docker run --rm gosom/google-maps-scraper -h`
    ou com o README oficial antes de usar. Registrar a versão do motor nas medições.
 3. **Testes pequenos.** No máximo 3 consultas, `-depth 1`, sem proxy. Nada de varredura grande.
-4. **Rede.** Nunca expor porta além de `127.0.0.1`. Por padrão não subimos servidor nenhum.
+4. **Rede.** Nunca expor porta além de `127.0.0.1`. O único servidor é a tela (`kit.py abrir`): só `127.0.0.1`, chave no link, cabeçalho próprio no POST, checagem de Host e arquivos só de `resultados/`. Qualquer mudança nela precisa manter essas proteções e os testes de `tests/test_interface.py`.
 5. **Dados reais nunca vão para o git.** Resultados ficam em `resultados/` (ignorada). O único
    CSV versionado é `examples/demo-*.csv`, 100% fictício, com `fonte = DEMO`.
 6. **Honestidade.** Dizer sempre que o scraping do Google Maps pode contrariar os termos do

@@ -12,6 +12,7 @@ Comandos:
   limpar      remove o motor do computador (libera ~2 GB); pede confirmação
   painel      (re)gera resultados/painel.html, com todas as suas buscas
   refinar     refaz a lista de uma busca sem coletar de novo (tirar categorias, quantidade)
+  abrir       abre a TELA no navegador: preencher a busca, acompanhar e abrir os resultados
 
 Exemplos (no Windows, troque "python3" por "py"):
   python3 scripts/kit.py verificar
@@ -580,7 +581,7 @@ def cmd_buscar(a):
     if a.profundidade > 3:
         dizer(f"[aviso] Profundidade {a.profundidade}: mais resultados por consulta, mas bem mais tempo e risco de bloqueio.")
 
-    pasta = PASTA_RESULTADOS / f"busca-{datetime.now():%Y%m%d-%H%M%S}"
+    pasta = Path(a.pasta) if a.pasta else PASTA_RESULTADOS / f"busca-{datetime.now():%Y%m%d-%H%M%S}"
     pasta.mkdir(parents=True, exist_ok=True)
     arq_consultas = pasta / "consultas.txt"
     arq_consultas.write_text("\n".join(consultas) + "\n", encoding="utf-8")
@@ -661,6 +662,17 @@ def finalizar_lista(pasta, consultas, ddd_padrao=None, quantidade=None, excluir=
     dizer(f"Planilha para Excel: {excel}")
     dizer(f"Painel com todas as suas buscas: {arq_painel}")
     return escolhidas
+
+
+def cmd_abrir(a):
+    """Abre a tela de busca no navegador (servidor local em 127.0.0.1, com chave no link)."""
+    import interface
+    info = verificar(silencioso=True)
+    if info["faltas"]:
+        dizer("[aviso] Falta resolver: " + ", ".join(info["faltas"]) + f". A tela abre, mas a busca só funciona depois. "
+              f"Rode: {comando_python()} scripts/kit.py verificar")
+    args = ["--porta", str(a.porta)] + (["--sem-navegador"] if a.sem_navegador else [])
+    return interface.main(args, PASTA_RESULTADOS)
 
 
 def cmd_refinar(a):
@@ -819,9 +831,13 @@ def main(argv=None):
                    help=f"máximo de consultas (padrão {planejar_consultas.LIMITE_PADRAO})")
     b.add_argument("--ddd-padrao", help="DDD para telefones que vierem sem DDD (ex.: 77)")
     b.add_argument("--quantidade", type=int, help="quantas empresas na lista final (as de contato mais completo)")
+    b.add_argument("--pasta", help="pasta onde gravar esta busca (padrão: resultados/busca-AAAAMMDD-HHMMSS)")
     b.add_argument("--excluir-categorias", nargs="+", default=[], help="categorias que não são do segmento")
     b.add_argument("--so-categorias", nargs="+", default=[], help="manter só estas categorias")
     b.add_argument("--mostrar-comando", action="store_true", help="só mostra o comando, não executa")
+    ab = sub.add_parser("abrir", help="abre a tela de busca no navegador")
+    ab.add_argument("--porta", type=int, default=8765)
+    ab.add_argument("--sem-navegador", action="store_true", help="só mostra o link, não abre o navegador")
     r = sub.add_parser("refinar", help="refaz a lista de uma busca sem coletar de novo (categorias, quantidade)")
     r.add_argument("--pasta", required=True, help="pasta da busca, ex.: resultados/busca-20261119-101500")
     r.add_argument("--quantidade", type=int, help="quantas empresas na lista final")
@@ -835,7 +851,8 @@ def main(argv=None):
     sub.add_parser("painel", help="(re)gera resultados/painel.html com todas as suas buscas")
     a = ap.parse_args(argv)
     acoes = {"verificar": cmd_verificar, "preparar": cmd_preparar, "testar": cmd_testar, "buscar": cmd_buscar,
-             "atualizar": cmd_atualizar, "limpar": cmd_limpar, "painel": cmd_painel, "refinar": cmd_refinar}
+             "atualizar": cmd_atualizar, "limpar": cmd_limpar, "painel": cmd_painel, "refinar": cmd_refinar,
+             "abrir": cmd_abrir}
     if a.comando not in acoes:
         ap.print_help()
         return 2

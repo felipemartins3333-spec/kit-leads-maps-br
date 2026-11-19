@@ -191,8 +191,8 @@ Deixe o kit funcionando neste computador, do começo ao fim:
 Quando terminar, me diga:
 - o que foi instalado (só o que você instalou de verdade);
 - onde ficou a pasta do kit e como atualizá-lo no futuro ("kit.py atualizar");
-- duas formas de usar: pelo terminal (um comando de busca pronto para copiar) e pedindo
-  para você em português (o comando /leads-buscar);
+- as duas formas de usar: a tela no navegador (rode "kit.py abrir" e me mostre o link)
+  e pedir para você em português (o comando /leads-buscar);
 - onde abrir o resultado de uma busca: o relatório HTML (duplo clique) e a planilha para Excel;
 - os números do teste, sem nomes, telefones, e-mails ou sites de empresas.
 
@@ -205,6 +205,21 @@ Se o Claude Code já estiver aberto dentro da pasta do kit, basta digitar `/lead
 ---
 
 ## Como fazer uma busca
+
+**Pela tela (mais fácil):**
+
+```bash
+python3 scripts/kit.py abrir
+```
+
+Abre um link no navegador (no Codespace, o kit mostra o link certo). Preencha o que você procura, a cidade,
+os bairros (opcional) e a quantidade, e clique em **Buscar empresas**. O andamento aparece na tela; no fim,
+**Abrir relatório** e **Planilha**. A tela roda só no seu computador, com uma chave no link: não compartilhe
+o link. Para fechar: Ctrl+C no terminal.
+
+**Pelo Claude:** `/leads-buscar 60 estúdios de pilates em Curitiba PR`.
+
+**Pelo terminal (avançado):**
 
 ```bash
 python3 scripts/kit.py buscar --segmentos "clínicas odontológicas" --cidades "Vitória da Conquista BA"

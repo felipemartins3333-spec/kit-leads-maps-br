@@ -41,8 +41,8 @@ Deixe o kit funcionando neste computador, do começo ao fim:
 Quando terminar, me diga:
 - o que foi instalado (só o que você instalou de verdade);
 - onde ficou a pasta do kit e como atualizá-lo no futuro ("kit.py atualizar");
-- duas formas de usar: pelo terminal (um comando de busca pronto para copiar) e pedindo
-  para você em português (o comando /leads-buscar);
+- as duas formas de usar: a tela no navegador (rode "kit.py abrir" e me mostre o link)
+  e pedir para você em português (o comando /leads-buscar);
 - onde abrir o resultado de uma busca: o relatório HTML (duplo clique) e a planilha para Excel;
 - os números do teste, sem nomes, telefones, e-mails ou sites de empresas.
 
@@ -52,11 +52,12 @@ que mexam no sistema.
 
 No Claude Desktop: abra uma conversa nova de código, escolha uma pasta para o kit e cole o prompt.
 
-**Uma busca, depois de instalado:**
+**Duas formas de usar, depois de instalado:**
 
-```bash
-python3 scripts/kit.py buscar --segmentos "clínicas odontológicas" --cidades "Vitória da Conquista BA"
-```
+1. **Pela tela no navegador:** rode `python3 scripts/kit.py abrir`, clique no link, preencha o segmento, a
+   cidade, os bairros e a quantidade, e acompanhe a busca. Os relatórios e as planilhas ficam ali mesmo.
+2. **Pedindo ao Claude:** `/leads-buscar 60 estúdios de pilates em Curitiba PR`. Ele divide por bairros,
+   limpa o que não é do segmento e entrega o relatório.
 
 ## Como funciona (visão geral)
 
@@ -96,7 +97,8 @@ python3 -I scripts/gerar_relatorio.py resultados/demo-leads-tratados.csv --saida
 
 | Arquivo | Para quê |
 |---------|----------|
-| `scripts/kit.py` | **comando principal**: `verificar`, `preparar`, `testar`, `buscar`, `atualizar`, `limpar`, `painel` |
+| `scripts/kit.py` | **comando principal**: `abrir` (tela no navegador), `verificar`, `preparar`, `testar`, `buscar`, `refinar`, `atualizar`, `limpar`, `painel` |
+| `scripts/interface.py` e `scripts/modelo_interface.html` | a **tela de busca** no navegador (servidor local em 127.0.0.1, com chave no link) |
 | `scripts/painel.py` | **painel das suas buscas** (`resultados/painel.html`): cada busca num cartão, com números e atalhos |
 | `scripts/visual.py` e `scripts/modelo_relatorio.html` | identidade visual (cores, tipografia, ícones próprios) e modelo do relatório |
 | `docs/instalacao.md` | instalação: Codespace, Windows, Mac, Linux, com ou sem Claude |
