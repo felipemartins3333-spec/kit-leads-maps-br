@@ -22,7 +22,10 @@ Siga `docs/instalacao.md` (ou o comando `/leads-instalar`). O caminho é sempre:
    documentações oficiais citadas lá. Não rode o motor "por fora" com flags novas.
 2. **Peça confirmação antes de mudar o sistema:** instalar Docker, Python ou Git, usar
    `sudo`/administrador, colocar o usuário no grupo `docker`. Mostre o que vai rodar e por quê.
-   Comandos do `kit.py` dentro da pasta do kit podem rodar direto.
+   Comandos do `kit.py` dentro da pasta do kit podem rodar direto. Para instalar o Docker, use só os comandos
+   oficiais de `docs/instalacao.md` (B1) e, antes, mostre o resumo da licença do Docker Desktop (grátis para
+   empresas com menos de 250 funcionários e menos de US$ 10 milhões por ano; maiores pagam): só use
+   `--accept-license` com o "sim" da pessoa.
 3. **Avise uma vez, sem drama:** coletar dados do Google Maps de forma automática pode
    contrariar os termos do Google, e telefones/e-mails de empresas podem ser dados pessoais
    (LGPD: finalidade clara, base legal, respeitar quem pedir para não ser contatado). Não é
@@ -55,6 +58,8 @@ No Claude Code: `/leads-instalar` (instalar e testar) e `/leads-buscar dentistas
 | Busca | `python3 scripts/kit.py buscar --segmentos "academias" --cidades "Salvador BA"` |
 | Busca com e-mail | acrescente `--email` (mais lento: visita o site de cada empresa) |
 | Atualizar o kit e o motor | `python3 scripts/kit.py atualizar` |
+| Lista com N empresas (as de contato mais completo) | acrescente `--quantidade 60` |
+| Tirar categorias fora do segmento, sem coletar de novo | `python3 scripts/kit.py refinar --pasta resultados/busca-... --excluir-categorias "Academia"` |
 | Ver todas as buscas (painel) | `python3 scripts/kit.py painel` → abre `resultados/painel.html` |
 | Liberar espaço (remover o motor) | `python3 scripts/kit.py limpar` (pede confirmação; não apaga `resultados/`) |
 

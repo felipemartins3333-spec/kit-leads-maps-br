@@ -355,3 +355,33 @@ Objetivo do Felipe: gravar vídeos com o Claude Desktop tendo só um Chromebook 
   0 px de rolagem lateral; botões do painel abrem o relatório certo. 65 testes passando (5 novos:
   painel com busca/vazio, terminal com e sem cor, margem, consulta maliciosa vira texto).
 - Não testado: aparência do terminal no Windows e no Mac reais (só simulado aqui com `script`).
+
+## Rodada 10 (2026-11-19) — ideias do vídeo do vzbaggio (sem copiar) e Docker automático
+
+- **Fonte:** transcrição e prints do vídeo público do Victor Baggio (12 min). Pontos fortes observados:
+  o Claude dividiu "pilates em Curitiba" em cidade + 5 bairros, removeu categorias fora do segmento,
+  escolheu 60 dos 103 pelo contato mais completo e ofereceu buscar redes sociais. Ele diz no vídeo
+  que às vezes a busca demora "20, 30, 40 minutos" (dado dele, não medido por nós).
+- **Feito (implementação própria):**
+  - `--quantidade N` em `buscar`: as N com contato mais completo (WhatsApp 4, telefone 2, site 2,
+    e-mail 2, nota 1; empate por avaliações e nota). Não é "pontuação de lead" (Fase 2b). A lista
+    inteira fica em `todas-*.csv`.
+  - `--excluir-categorias` / `--so-categorias` (sem acento e sem caixa) e **`kit.py refinar`**, que
+    refaz a lista a partir do `bruto.csv` sem coletar de novo. O kit imprime as categorias encontradas.
+  - `/leads-buscar` reescrito: estratégia (cidade + 3–5 bairros quando grande), plano com confirmação,
+    limpeza de categorias com `refinar`, entrega com números e próximos passos.
+  - Relatório: cartão **Nota média** (18 com nota → 4,4 na demo; conferido).
+- **Correção de fato — Docker:** eu tinha dito que no Windows/Mac o Claude "só pode guiar". A
+  documentação oficial do Docker (lida em 19/11/2026) tem **instalação por linha de comando**:
+  Windows `"Docker Desktop Installer.exe" install --user` (modo por usuário, **sem administrador**;
+  WSL 2 ≥ 2.1.5 é pré-requisito e `wsl --install` pede administrador e pode reiniciar); Mac
+  `sudo hdiutil attach` + `.../Contents/MacOS/install` + `detach`; flag `--accept-license` nos dois.
+  O kit agora instala sozinho por esses comandos, com uma confirmação.
+- **Licença do Docker Desktop (importante para público B2B):** pelo resumo oficial, gratuito para uso
+  pessoal, educação, open source não comercial e empresas com **< 250 funcionários e < US$ 10 mi/ano**;
+  empresas maiores precisam de assinatura. O Claude mostra isso e só usa `--accept-license` com o "sim"
+  da pessoa. Linux usa Docker Engine (sem essa licença). Entra nos "Limites honestos" do material.
+- Pré-requisito oficial do Windows lista edições Pro/Enterprise/Education para o backend WSL 2, mas a
+  mesma página diz que Home roda containers Linux. **Não testado** em Windows Home.
+- 73 testes passando (8 novos: escolher melhores, filtrar categorias, contar categorias, refinar com
+  e sem quantidade, pasta sem bruto, quantidade inválida).

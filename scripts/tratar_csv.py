@@ -271,6 +271,71 @@ def tratar(linhas, ddd_padrao=None):
     return saida, est
 
 
+# ------------------------------------------------- escolher e filtrar a lista
+
+import unicodedata
+
+
+def _sem_acento(s):
+    return "".join(c for c in unicodedata.normalize("NFD", (s or "").lower()) if unicodedata.category(c) != "Mn").strip()
+
+
+def pontos_de_contato(linha):
+    """Quanto dá para falar com a empresa: WhatsApp vale mais; depois telefone, site, e-mail e nota.
+    Não é "pontuação de lead" (isso exige critérios do seu negócio): é só completude de contato."""
+    pontos = 0
+    if linha.get("whatsapp"):
+        pontos += 4
+    if linha.get("telefone"):
+        pontos += 2
+    if linha.get("site"):
+        pontos += 2
+    if linha.get("email"):
+        pontos += 2
+    if linha.get("nota"):
+        pontos += 1
+    return pontos
+
+
+def _numero(v):
+    try:
+        return float(str(v or "0").replace(",", "."))
+    except ValueError:
+        return 0.0
+
+
+def selecionar_melhores(linhas, quantidade):
+    """As N empresas com contato mais completo; empate: mais avaliações, depois maior nota."""
+    ordenadas = sorted(linhas, key=lambda l: (pontos_de_contato(l), _numero(l.get("avaliacoes")),
+                                              _numero(l.get("nota"))), reverse=True)
+    return ordenadas[:quantidade] if quantidade else ordenadas
+
+
+def filtrar_categorias(linhas, excluir=None, somente=None):
+    """Tira categorias que não são do segmento (excluir) ou mantém só algumas (somente).
+    Compara sem acento e sem diferença de maiúsculas."""
+    fora = {_sem_acento(c) for c in (excluir or []) if c.strip()}
+    so = {_sem_acento(c) for c in (somente or []) if c.strip()}
+    saida = []
+    for l in linhas:
+        cat = _sem_acento(l.get("categoria"))
+        if fora and cat in fora:
+            continue
+        if so and cat not in so:
+            continue
+        saida.append(l)
+    return saida
+
+
+def contar_categorias(linhas):
+    """[(categoria, quantidade)] da mais comum para a menos comum."""
+    cont = {}
+    for l in linhas:
+        c = l.get("categoria") or "(sem categoria)"
+        cont[c] = cont.get(c, 0) + 1
+    return sorted(cont.items(), key=lambda x: (-x[1], x[0]))
+
+
 def _blindar_planilha(v):
     """Evita 'injeção de fórmula' no Excel: texto que começa com = + - @ vira texto puro."""
     return "'" + v if v and v[0] in "=+-@\t\r" else v

@@ -31,8 +31,8 @@ Deixe o kit funcionando neste computador, do começo ao fim:
    "py scripts\kit.py verificar") e me diga, em uma frase, o que já existe e o que falta.
 3. Resolva sozinho o que for seguro e ficar dentro da pasta do kit. O que mexer no sistema
    (instalar Docker, Python ou Git, usar sudo ou administrador): junte tudo, me mostre a lista
-   e peça UMA confirmação. Se o Docker Desktop precisar ser instalado no Windows ou no Mac,
-   me guie passo a passo e espere eu terminar.
+   e peça UMA confirmação. Se faltar o Docker, instale pelos comandos oficiais do
+   docs/instalacao.md; antes, me mostre o resumo da licença do Docker Desktop e espere meu "sim".
 4. Prepare o motor ("kit.py preparar") e rode o teste pequeno ("kit.py testar", no máximo
    3 consultas).
 5. Confirme que funcionou pelo relatório do teste (resultados/relatorio-teste.txt), não só

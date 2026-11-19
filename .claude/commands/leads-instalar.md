@@ -12,8 +12,11 @@ Siga o `CLAUDE.md` e o `docs/instalacao.md` deste repositório. Fale em portugu�
 2. **Resolver só o que falta**, pelo `docs/instalacao.md`:
    - Antes de qualquer mudança no sistema (instalar programa, `sudo`, administrador, grupo `docker`),
      mostre a lista do que vai rodar e peça confirmação **uma vez**.
-   - Docker Desktop no Windows ou no Mac: você não consegue instalar sozinho. Guie a pessoa pela página
-     oficial citada no guia, peça para ela abrir o Docker Desktop quando terminar e espere a confirmação.
+   - Docker faltando: instale pelos comandos oficiais da parte "B1. Instalar o Docker" do
+     `docs/instalacao.md` (Windows: WSL + instalador "por usuário"; Mac: `hdiutil` + `install`; Linux:
+     Docker Engine). **Antes**, mostre o resumo da licença do Docker Desktop que está no guia e só use
+     `--accept-license` depois do "sim" da pessoa. Se o Windows pedir para reiniciar (WSL), avise e
+     combine de continuar depois.
    - Depois de cada correção, rode `kit.py verificar` de novo.
 
 3. **Preparar o motor.** Rode `python3 scripts/kit.py preparar` (baixa ~2 GB; avise antes).

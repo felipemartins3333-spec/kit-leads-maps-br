@@ -11,6 +11,7 @@ Comandos:
   atualizar   baixa a versão nova do kit (git) e a versão do motor que ela usa
   limpar      remove o motor do computador (libera ~2 GB); pede confirmação
   painel      (re)gera resultados/painel.html, com todas as suas buscas
+  refinar     refaz a lista de uma busca sem coletar de novo (tirar categorias, quantidade)
 
 Exemplos (no Windows, troque "python3" por "py"):
   python3 scripts/kit.py verificar
@@ -568,6 +569,9 @@ def cmd_buscar(a):
         dizer(f"São {len(consultas)} consultas, acima do limite de {a.limite}. Reduza ou use --limite "
               f"(mais consultas = mais tempo e mais risco de o Google limitar o acesso).")
         return 1
+    if a.quantidade is not None and a.quantidade < 1:
+        dizer("A quantidade precisa ser 1 ou mais.")
+        return 2
     if a.profundidade > 3:
         dizer(f"[aviso] Profundidade {a.profundidade}: mais resultados por consulta, mas bem mais tempo e risco de bloqueio.")
 
@@ -594,24 +598,79 @@ def cmd_buscar(a):
         explicar_zero_linhas(pasta)
         return 1
 
-    saida, est = tratar_csv.tratar(tratar_csv.ler_csv(pasta / "bruto.csv"), a.ddd_padrao)
-    padrao, excel = tratar_csv.salvar(saida, pasta, "leads")
-    html = pasta / "relatorio.html"
-    html.write_text(gerar_relatorio.gerar(gerar_relatorio.ler_linhas(padrao), "Lista de leads", consultas),
-                    encoding="utf-8")
-    arq_painel = painel.gerar_painel(PASTA_RESULTADOS, comando_python())
-    dizer(f"\nEmpresas: {est['finais']} (de {est['lidas']} coletadas; "
-          f"{est['duplicadas_place_id'] + est['duplicadas_telefone']} duplicadas removidas)")
-    dizer(f"Telefone: {est['celular']} celular, {est['fixo']} fixo, {est['0800']} 0800, "
-          f"{est['sem_telefone'] + est['telefone_invalido']} sem telefone válido")
-    dizer(f"Com site: {est['com_site']} | com e-mail: {est['com_email']}"
-          + ("" if a.email else " (rode com --email para procurar e-mails nos sites)"))
-    dizer(f"\nAbra o relatório (duplo clique): {html}")
-    dizer(f"Planilha para Excel: {excel}")
-    dizer(f"Painel com todas as suas buscas: {arq_painel}")
+    finalizar_lista(pasta, consultas, a.ddd_padrao, a.quantidade, a.excluir_categorias, a.so_categorias,
+                    com_email=a.email)
     dizer(f"Tempo total da coleta: {formatar_tempo(m['segundos'])}")
     dizer("\nO motor de coleta é o projeto aberto github.com/gosom/google-maps-scraper (Georgios Komninos).")
     dizer("Se a lista ajudou, deixar uma estrela lá é um jeito simples de apoiar quem fez.")
+    return 0
+
+
+def finalizar_lista(pasta, consultas, ddd_padrao=None, quantidade=None, excluir=None, somente=None,
+                    com_email=True):
+    """Do bruto.csv à lista final: trata, tira categorias fora do segmento, escolhe as N com contato
+    mais completo, gera planilhas, relatório e painel. Usado por 'buscar' e 'refinar' (sem coletar de novo)."""
+    pasta = Path(pasta)
+    todas, est = tratar_csv.tratar(tratar_csv.ler_csv(pasta / "bruto.csv"), ddd_padrao)
+    categorias = tratar_csv.contar_categorias(todas)
+    filtradas = tratar_csv.filtrar_categorias(todas, excluir, somente)
+    removidas_categoria = len(todas) - len(filtradas)
+    for antigo in ("todas-tratados.csv", "todas-excel.csv"):
+        if (pasta / antigo).exists():
+            (pasta / antigo).unlink()
+    if quantidade and len(filtradas) > quantidade:
+        escolhidas = tratar_csv.selecionar_melhores(filtradas, quantidade)
+        tratar_csv.salvar(tratar_csv.selecionar_melhores(filtradas, None), pasta, "todas")
+    else:
+        escolhidas = tratar_csv.selecionar_melhores(filtradas, None)
+    padrao, excel = tratar_csv.salvar(escolhidas, pasta, "leads")
+    html = pasta / "relatorio.html"
+    html.write_text(gerar_relatorio.gerar(gerar_relatorio.ler_linhas(padrao), "Lista de leads", consultas),
+                    encoding="utf-8")
+    arq_painel = painel.gerar_painel(pasta.parent, comando_python())
+
+    n = len(escolhidas)
+    def conta(f):
+        return sum(1 for l in escolhidas if f(l))
+    dizer(f"\nColetadas: {est['lidas']} | duplicadas removidas: "
+          f"{est['duplicadas_place_id'] + est['duplicadas_telefone']}"
+          + (f" | fora do segmento removidas: {removidas_categoria}" if removidas_categoria else ""))
+    if quantidade and len(filtradas) > quantidade:
+        dizer(f"Na lista: as {n} com contato mais completo (de {len(filtradas)}). A lista inteira está em "
+              f"{pasta / 'todas-excel.csv'}")
+    elif quantidade and len(filtradas) < quantidade:
+        dizer(f"[aviso] Você pediu {quantidade}, mas vieram {len(filtradas)}. Para mais, divida por bairros "
+              f"ou aumente a profundidade.")
+    dizer(f"Empresas na lista: {n}")
+    dizer(f"Telefone: {conta(lambda l: l['tipo_telefone'] == 'celular')} celular, "
+          f"{conta(lambda l: l['tipo_telefone'] == 'fixo')} fixo, {conta(lambda l: l['tipo_telefone'] == '0800')} 0800, "
+          f"{conta(lambda l: not l['telefone'])} sem telefone válido")
+    dizer(f"Com site: {conta(lambda l: l['site'])} | com e-mail: {conta(lambda l: l['email'])}"
+          + ("" if com_email else " (rode com --email para procurar e-mails nos sites)"))
+    if categorias:
+        top = ", ".join(f"{c} ({q})" for c, q in categorias[:10])
+        dizer(f"Categorias encontradas: {top}" + (" ..." if len(categorias) > 10 else ""))
+        dizer(f"Para tirar categorias que não são do segmento, sem coletar de novo: "
+              f"{comando_python()} scripts/kit.py refinar --pasta {pasta} --excluir-categorias \"Categoria 1\" \"Categoria 2\"")
+    dizer(f"\nAbra o relatório (duplo clique): {html}")
+    dizer(f"Planilha para Excel: {excel}")
+    dizer(f"Painel com todas as suas buscas: {arq_painel}")
+    return escolhidas
+
+
+def cmd_refinar(a):
+    dizer("=== Kit de leads — refinar uma busca (sem coletar de novo) ===")
+    pasta = Path(a.pasta)
+    if not (pasta / "bruto.csv").exists():
+        dizer(f"[falta] Não achei {pasta / 'bruto.csv'}. Use a pasta de uma busca, ex.: resultados/busca-AAAAMMDD-HHMMSS")
+        return 1
+    if not resumo_teste.ler_linhas(pasta / "bruto.csv"):
+        dizer("[falta] Essa busca não tem nenhuma empresa coletada.")
+        return 1
+    consultas = []
+    if (pasta / "consultas.txt").exists():
+        consultas = [c.strip() for c in (pasta / "consultas.txt").read_text(encoding="utf-8-sig").splitlines() if c.strip()]
+    finalizar_lista(pasta, consultas, a.ddd_padrao, a.quantidade, a.excluir_categorias, a.so_categorias)
     return 0
 
 
@@ -754,7 +813,16 @@ def main(argv=None):
     b.add_argument("--limite", type=int, default=planejar_consultas.LIMITE_PADRAO,
                    help=f"máximo de consultas (padrão {planejar_consultas.LIMITE_PADRAO})")
     b.add_argument("--ddd-padrao", help="DDD para telefones que vierem sem DDD (ex.: 77)")
+    b.add_argument("--quantidade", type=int, help="quantas empresas na lista final (as de contato mais completo)")
+    b.add_argument("--excluir-categorias", nargs="+", default=[], help="categorias que não são do segmento")
+    b.add_argument("--so-categorias", nargs="+", default=[], help="manter só estas categorias")
     b.add_argument("--mostrar-comando", action="store_true", help="só mostra o comando, não executa")
+    r = sub.add_parser("refinar", help="refaz a lista de uma busca sem coletar de novo (categorias, quantidade)")
+    r.add_argument("--pasta", required=True, help="pasta da busca, ex.: resultados/busca-20261119-101500")
+    r.add_argument("--quantidade", type=int, help="quantas empresas na lista final")
+    r.add_argument("--excluir-categorias", nargs="+", default=[])
+    r.add_argument("--so-categorias", nargs="+", default=[])
+    r.add_argument("--ddd-padrao")
     sub.add_parser("atualizar", help="baixa a versão nova do kit e a versão do motor que ela usa")
     lp = sub.add_parser("limpar", help="remove o motor do computador (libera ~2 GB)")
     lp.add_argument("--antigas", action="store_true", help="remove só versões antigas do motor")
@@ -762,7 +830,7 @@ def main(argv=None):
     sub.add_parser("painel", help="(re)gera resultados/painel.html com todas as suas buscas")
     a = ap.parse_args(argv)
     acoes = {"verificar": cmd_verificar, "preparar": cmd_preparar, "testar": cmd_testar, "buscar": cmd_buscar,
-             "atualizar": cmd_atualizar, "limpar": cmd_limpar, "painel": cmd_painel}
+             "atualizar": cmd_atualizar, "limpar": cmd_limpar, "painel": cmd_painel, "refinar": cmd_refinar}
     if a.comando not in acoes:
         ap.print_help()
         return 2

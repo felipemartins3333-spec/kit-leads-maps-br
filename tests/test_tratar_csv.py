@@ -160,5 +160,39 @@ class TesteTratamento(unittest.TestCase):
         self.assertNotIn("telefone_e164", cab)
 
 
+class TesteEscolherEFiltrar(unittest.TestCase):
+    def linhas(self):
+        return [
+            {"nome": "Só fixo", "categoria": "Academia", "telefone": "(77) 3421-0001", "whatsapp": "", "site": "",
+             "email": "", "nota": "", "avaliacoes": ""},
+            {"nome": "Completo", "categoria": "Estúdio de pilates", "telefone": "(77) 99999-0002",
+             "whatsapp": "https://wa.me/5577999990002", "site": "https://a.com.br", "email": "a@a.com.br",
+             "nota": "4.8", "avaliacoes": "10"},
+            {"nome": "Zap e muitas avaliações", "categoria": "estudio de PILATES", "telefone": "(77) 99999-0003",
+             "whatsapp": "https://wa.me/5577999990003", "site": "", "email": "", "nota": "4.1", "avaliacoes": "300"},
+            {"nome": "Zap e poucas", "categoria": "Personal trainer", "telefone": "(77) 99999-0004",
+             "whatsapp": "https://wa.me/5577999990004", "site": "", "email": "", "nota": "4.1", "avaliacoes": "3"},
+        ]
+
+    def test_melhores_por_contato_e_avaliacoes(self):
+        nomes = [l["nome"] for l in t.selecionar_melhores(self.linhas(), 3)]
+        self.assertEqual(nomes, ["Completo", "Zap e muitas avaliações", "Zap e poucas"])
+
+    def test_sem_quantidade_mantem_todas_ordenadas(self):
+        self.assertEqual(len(t.selecionar_melhores(self.linhas(), None)), 4)
+
+    def test_excluir_categoria_sem_acento_e_caixa(self):
+        nomes = [l["nome"] for l in t.filtrar_categorias(self.linhas(), excluir=["ACADEMIA", "personal trainer"])]
+        self.assertEqual(nomes, ["Completo", "Zap e muitas avaliações"])
+
+    def test_somente_categoria(self):
+        nomes = [l["nome"] for l in t.filtrar_categorias(self.linhas(), somente=["Estúdio de Pilates"])]
+        self.assertEqual(nomes, ["Completo", "Zap e muitas avaliações"])
+
+    def test_contar_categorias(self):
+        self.assertEqual(t.contar_categorias(self.linhas())[0][1], 1)
+        self.assertEqual(len(t.contar_categorias(self.linhas())), 4)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -55,22 +55,57 @@ Dois cuidados honestos:
 
 ### B1. Instalar o Docker
 
-O Docker é o único programa que o Claude **não consegue instalar sozinho** no Windows e no Mac:
-o instalador oficial tem janelas, pede permissão de administrador e às vezes reinício.
+O Claude consegue instalar o Docker **sozinho**, usando a instalação por linha de comando da
+documentação oficial do Docker (comandos abaixo). Ele mostra o que vai rodar e pede **uma**
+confirmação. No Mac, o computador pede a sua senha uma vez; no Windows, só o WSL (se faltar) pede
+administrador.
 
-- **Windows:** Docker Desktop, pela página oficial *Install Docker Desktop on Windows*
-  (docs.docker.com/desktop/setup/install/windows-install/). Requisitos oficiais: WSL 2 ligado e
-  8 GB de RAM.
-- **Mac:** Docker Desktop, pela página oficial *Install Docker Desktop on Mac*
-  (docs.docker.com/desktop/setup/install/mac-install/). Há um instalador para chip Apple (M1, M2…)
-  e outro para chip Intel. Requisitos oficiais: pelo menos 4 GB de RAM e uma das três versões
-  mais recentes do macOS.
-- **Linux (Debian):** siga o Passo 3 e o Passo 4 de `docs/teste-no-chromebook.md` (comandos da
-  documentação oficial). **Ubuntu:** página oficial *Install Docker Engine on Ubuntu*
-  (docs.docker.com/engine/install/ubuntu/). No Linux, o Claude pode rodar esses comandos por
-  você, mas vai pedir sua confirmação antes, porque mexem no sistema.
+> **Licença do Docker Desktop (Windows e Mac).** Pelo resumo oficial do Docker, o Docker Desktop é
+> gratuito para uso pessoal, educação, projetos de código aberto sem fins comerciais e **empresas com
+> menos de 250 funcionários e menos de US$ 10 milhões de faturamento por ano**. Empresas maiores
+> precisam de assinatura paga. A instalação aceita esse contrato
+> (docker.com/legal/docker-subscription-service-agreement): o Claude mostra este resumo e só segue com
+> o seu "sim".
 
-Depois de instalar, **abra o Docker Desktop** (Windows/Mac) e espere ele terminar de iniciar.
+**Windows** (fonte: docs.docker.com/desktop/setup/install/windows-install/)
+
+1. Requisitos oficiais: Windows 10 ou 11 de 64 bits ainda com suporte da Microsoft, 8 GB de RAM,
+   virtualização ligada no computador e **WSL 2** versão 2.1.5 ou mais nova. Para conferir: `wsl --version`.
+2. Se o WSL faltar ou for antigo: num terminal **aberto como administrador**, `wsl --install`
+   (ou `wsl --update`). Pode pedir para reiniciar o computador.
+3. Baixar o instalador oficial: desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe
+   (computador com chip Arm: troque `amd64` por `arm64`).
+4. Instalar no modo "por usuário", que **não precisa de administrador** (PowerShell, na pasta do arquivo):
+
+```powershell
+Start-Process 'Docker Desktop Installer.exe' -Wait -ArgumentList 'install', '--user', '--accept-license'
+```
+
+5. Abrir o **Docker Desktop** pelo menu Iniciar e esperar terminar de iniciar.
+
+**Mac** (fonte: docs.docker.com/desktop/setup/install/mac-install/)
+
+1. Requisitos oficiais: uma das três versões mais recentes do macOS e 4 GB de RAM.
+2. Baixar o `Docker.dmg` do chip certo (`uname -m` mostra `arm64` ou `x86_64`):
+   chip Apple (M1, M2...): desktop.docker.com/mac/main/arm64/Docker.dmg ·
+   chip Intel: desktop.docker.com/mac/main/amd64/Docker.dmg
+3. Instalar (pede a senha do Mac; a primeira vez pode levar alguns minutos por causa das checagens de
+   segurança do macOS):
+
+```bash
+sudo hdiutil attach Docker.dmg
+sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
+sudo hdiutil detach /Volumes/Docker
+```
+
+4. Abrir o **Docker** em Aplicativos e esperar terminar de iniciar.
+
+**Linux (Debian):** siga o Passo 3 e o Passo 4 de `docs/teste-no-chromebook.md` (comandos da
+documentação oficial). **Ubuntu:** página oficial *Install Docker Engine on Ubuntu*
+(docs.docker.com/engine/install/ubuntu/). No Linux não há licença do Docker Desktop: é o Docker Engine,
+de código aberto.
+
+Se preferir instalar com o mouse, as mesmas páginas oficiais têm o instalador com janelas.
 
 ### B2. Instalar o Claude
 
@@ -146,8 +181,8 @@ Deixe o kit funcionando neste computador, do começo ao fim:
    "py scripts\kit.py verificar") e me diga, em uma frase, o que já existe e o que falta.
 3. Resolva sozinho o que for seguro e ficar dentro da pasta do kit. O que mexer no sistema
    (instalar Docker, Python ou Git, usar sudo ou administrador): junte tudo, me mostre a lista
-   e peça UMA confirmação. Se o Docker Desktop precisar ser instalado no Windows ou no Mac,
-   me guie passo a passo e espere eu terminar.
+   e peça UMA confirmação. Se faltar o Docker, instale pelos comandos oficiais do
+   docs/instalacao.md; antes, me mostre o resumo da licença do Docker Desktop e espere meu "sim".
 4. Prepare o motor ("kit.py preparar") e rode o teste pequeno ("kit.py testar", no máximo
    3 consultas).
 5. Confirme que funcionou pelo relatório do teste (resultados/relatorio-teste.txt), não só
@@ -177,6 +212,10 @@ python3 scripts/kit.py buscar --segmentos "clínicas odontológicas" --cidades "
 
 - Vários segmentos ou cidades: `--segmentos "academias" "pilates" --cidades "Salvador BA" "Feira de Santana BA"`.
 - Procurar e-mails nos sites (mais lento): acrescente `--email`.
+- Quer um número certo? `--quantidade 60` entrega as 60 com contato mais completo (WhatsApp, telefone,
+  site, e-mail, nota); a lista inteira fica em `todas-excel.csv`.
+- Veio categoria que não é do segmento? Refaça a lista **sem coletar de novo**:
+  `python3 scripts/kit.py refinar --pasta resultados/busca-... --excluir-categorias "Academia" "Personal trainer"`.
 - Mais resultados por consulta: `--profundidade 2` ou `3` (mais tempo e mais risco de bloqueio).
 - **Cidade grande?** O Google Maps mostra um número limitado de empresas por busca. Em vez de aumentar
   muito a profundidade, divida por bairros: `--cidades "Pituba, Salvador BA" "Barra, Salvador BA"`.

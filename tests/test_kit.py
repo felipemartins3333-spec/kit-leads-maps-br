@@ -291,5 +291,36 @@ class TesteConsultasNoRelatorio(unittest.TestCase):
         self.assertNotRegex(pagina, r"__[A-Z_]+__", "nenhum marcador pode sobrar na página")
 
 
+class TesteRefinar(unittest.TestCase):
+    def test_refinar_sem_coletar_de_novo(self):
+        import csv as _csv
+        import shutil as _sh
+        demo = Path(kit.RAIZ) / "examples" / "demo-leads.csv"
+        with tempfile.TemporaryDirectory() as d:
+            busca = Path(d) / "busca-20261119-101500"
+            busca.mkdir()
+            _sh.copy(demo, busca / "bruto.csv")
+            (busca / "consultas.txt").write_text("academias em Cidade Modelo BA\n", encoding="utf-8")
+            r = kit.main(["refinar", "--pasta", str(busca), "--excluir-categorias", "Academia", "--quantidade", "5"])
+            self.assertEqual(r, 0)
+            with open(busca / "leads-tratados.csv", newline="", encoding="utf-8") as f:
+                linhas = list(_csv.DictReader(f))
+            self.assertEqual(len(linhas), 5)
+            self.assertNotIn("Academia", [l["categoria"] for l in linhas])
+            self.assertTrue((busca / "todas-excel.csv").exists(), "a lista inteira fica guardada")
+            self.assertTrue((busca / "relatorio.html").exists())
+            self.assertTrue((Path(d) / "painel.html").exists(), "o painel fica na pasta de resultados")
+            # refinar de novo sem quantidade: some o arquivo 'todas' (não fica dado velho)
+            self.assertEqual(kit.main(["refinar", "--pasta", str(busca)]), 0)
+            self.assertFalse((busca / "todas-excel.csv").exists())
+
+    def test_refinar_pasta_sem_bruto(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(kit.main(["refinar", "--pasta", d]), 1)
+
+    def test_buscar_quantidade_invalida(self):
+        self.assertEqual(kit.main(["buscar", "--segmentos", "a", "--cidades", "X BA", "--quantidade", "0"]), 2)
+
+
 if __name__ == "__main__":
     unittest.main()
