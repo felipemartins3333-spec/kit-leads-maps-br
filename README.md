@@ -19,16 +19,38 @@ Desktop ou Claude Code) e cole o prompt abaixo. O guia completo, com Windows, Ma
 [`docs/instalacao.md`](docs/instalacao.md).
 
 ```text
-Quero usar o kit de leads do Google Maps deste repositório:
+Quero montar listas de empresas do Google Maps com este kit:
 https://github.com/felipemartins3333-spec/kit-leads-maps-br
-Instale e deixe funcionando neste computador, seguindo SÓ o que está no próprio repositório:
-leia o CLAUDE.md e o docs/instalacao.md, rode "kit.py verificar", resolva só o que faltar
-(pedindo minha confirmação antes de mudar o sistema), rode "kit.py preparar" e "kit.py testar".
-No fim, me diga o que foi instalado, onde ficou a pasta, como fazer uma busca simples e onde
-abrir o relatório. Não invente comandos.
+
+Deixe o kit funcionando neste computador, do começo ao fim:
+
+1. Baixe o repositório (git clone; se não houver Git, me peça para baixar o ZIP pelo GitHub).
+   Antes de qualquer comando, leia o CLAUDE.md e o docs/instalacao.md do próprio kit.
+   Use só os comandos que estão lá e nas documentações oficiais citadas. Não invente nenhum.
+2. Rode o verificador do kit ("python3 scripts/kit.py verificar"; no Windows,
+   "py scripts\kit.py verificar") e me diga, em uma frase, o que já existe e o que falta.
+3. Resolva sozinho o que for seguro e ficar dentro da pasta do kit. O que mexer no sistema
+   (instalar Docker, Python ou Git, usar sudo ou administrador): junte tudo, me mostre a lista
+   e peça UMA confirmação. Se o Docker Desktop precisar ser instalado no Windows ou no Mac,
+   me guie passo a passo e espere eu terminar.
+4. Prepare o motor ("kit.py preparar") e rode o teste pequeno ("kit.py testar", no máximo
+   3 consultas).
+5. Confirme que funcionou pelo relatório do teste (resultados/relatorio-teste.txt), não só
+   pela mensagem final.
+
+Quando terminar, me diga:
+- o que foi instalado (só o que você instalou de verdade);
+- onde ficou a pasta do kit;
+- duas formas de usar: pelo terminal (um comando de busca pronto para copiar) e pedindo
+  para você em português (o comando /leads-buscar);
+- onde abrir o resultado de uma busca: o relatório HTML (duplo clique) e a planilha para Excel;
+- os números do teste, sem nomes, telefones, e-mails ou sites de empresas.
+
+Se algo der errado, explique em português simples e pare antes de tentar alternativas
+que mexam no sistema.
 ```
 
-(A versão completa do prompt, passo a passo, está em `docs/instalacao.md`.)
+No Claude Desktop: abra uma conversa nova de código, escolha uma pasta para o kit e cole o prompt.
 
 **Uma busca, depois de instalado:**
 

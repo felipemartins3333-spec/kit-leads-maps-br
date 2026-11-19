@@ -134,25 +134,35 @@ No Windows, troque `python3` por `py` e `/` por `\` (por exemplo `py scripts\kit
 ## Prompt de instalação (para colar no Claude)
 
 ```text
-Quero usar o kit de leads do Google Maps deste repositório:
+Quero montar listas de empresas do Google Maps com este kit:
 https://github.com/felipemartins3333-spec/kit-leads-maps-br
 
-Instale e deixe funcionando neste computador, seguindo SÓ o que está no próprio repositório.
+Deixe o kit funcionando neste computador, do começo ao fim:
 
 1. Baixe o repositório (git clone; se não houver Git, me peça para baixar o ZIP pelo GitHub).
-2. Leia o CLAUDE.md e o docs/instalacao.md antes de rodar qualquer comando.
-3. Rode "python3 scripts/kit.py verificar" (no Windows: "py scripts\kit.py verificar") e me
-   diga, em uma frase, o que falta.
-4. Resolva só o que faltar, pelo docs/instalacao.md. Antes de qualquer mudança no sistema
-   (instalar programas, usar sudo ou administrador), me mostre o que vai fazer e peça
-   confirmação. Se o Docker Desktop precisar ser instalado no Windows ou no Mac, me guie
-   passo a passo e espere eu terminar.
-5. Rode "kit.py preparar" e depois "kit.py testar".
-6. No fim, me diga: o que foi instalado, onde ficou a pasta do kit, como fazer uma busca
-   simples e onde abrir o relatório. Mostre só os números do teste, sem nomes, telefones
-   ou e-mails de empresas.
+   Antes de qualquer comando, leia o CLAUDE.md e o docs/instalacao.md do próprio kit.
+   Use só os comandos que estão lá e nas documentações oficiais citadas. Não invente nenhum.
+2. Rode o verificador do kit ("python3 scripts/kit.py verificar"; no Windows,
+   "py scripts\kit.py verificar") e me diga, em uma frase, o que já existe e o que falta.
+3. Resolva sozinho o que for seguro e ficar dentro da pasta do kit. O que mexer no sistema
+   (instalar Docker, Python ou Git, usar sudo ou administrador): junte tudo, me mostre a lista
+   e peça UMA confirmação. Se o Docker Desktop precisar ser instalado no Windows ou no Mac,
+   me guie passo a passo e espere eu terminar.
+4. Prepare o motor ("kit.py preparar") e rode o teste pequeno ("kit.py testar", no máximo
+   3 consultas).
+5. Confirme que funcionou pelo relatório do teste (resultados/relatorio-teste.txt), não só
+   pela mensagem final.
 
-Não invente comandos: use só os do repositório e das documentações oficiais citadas nele.
+Quando terminar, me diga:
+- o que foi instalado (só o que você instalou de verdade);
+- onde ficou a pasta do kit;
+- duas formas de usar: pelo terminal (um comando de busca pronto para copiar) e pedindo
+  para você em português (o comando /leads-buscar);
+- onde abrir o resultado de uma busca: o relatório HTML (duplo clique) e a planilha para Excel;
+- os números do teste, sem nomes, telefones, e-mails ou sites de empresas.
+
+Se algo der errado, explique em português simples e pare antes de tentar alternativas
+que mexam no sistema.
 ```
 
 Se o Claude Code já estiver aberto dentro da pasta do kit, basta digitar `/leads-instalar`.
