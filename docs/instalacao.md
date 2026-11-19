@@ -186,6 +186,10 @@ O resultado fica em `resultados/busca-AAAAMMDD-HHMMSS/`:
 - `leads-excel.csv`: abre direto no Excel em português;
 - `leads-tratados.csv`: o mesmo conteúdo em formato padrão, para importar em CRM.
 
+E o **painel** `resultados/painel.html` reúne todas as suas buscas, cada uma num cartão com os números
+e atalhos para o relatório e a planilha (duplo clique; funciona sem internet). Para gerá-lo de novo:
+`python3 scripts/kit.py painel`.
+
 ---
 
 ## Atualizar

@@ -33,6 +33,7 @@ Siga o `CLAUDE.md` deste repositório. Fale em português simples.
    - quantas empresas, quantas com celular/WhatsApp, fixo, site e e-mail;
    - o caminho do `relatorio.html` (duplo clique: busca, filtros e botão de WhatsApp, funciona sem
      internet) e do `leads-excel.csv` (abre no Excel em português).
+   e o painel `resultados/painel.html`, que reúne todas as buscas.
    Não cole a lista inteira no chat. Se a pessoa pedir exemplos, mostre poucas linhas.
    Se vier 0 empresas, explique as causas e siga o "O que tentar" que o kit mostrou, um passo de cada vez.
    Em cidade grande, sugira dividir por bairros em vez de aumentar muito a profundidade.

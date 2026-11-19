@@ -10,6 +10,7 @@ Comandos:
               CSV tratado + CSV para Excel + relatório HTML
   atualizar   baixa a versão nova do kit (git) e a versão do motor que ela usa
   limpar      remove o motor do computador (libera ~2 GB); pede confirmação
+  painel      (re)gera resultados/painel.html, com todas as suas buscas
 
 Exemplos (no Windows, troque "python3" por "py"):
   python3 scripts/kit.py verificar
@@ -28,6 +29,7 @@ import argparse
 import csv
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -39,6 +41,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "scripts"))
 
 import gerar_relatorio  # noqa: E402
+import painel  # noqa: E402
 import planejar_consultas  # noqa: E402
 import resumo_teste  # noqa: E402
 import tratar_csv  # noqa: E402
@@ -69,8 +72,67 @@ def comando_python():
     return "py" if so() == "Windows" else "python3"
 
 
+# ------------------------------------------------------------- terminal bonito
+# Cores e moldura só quando há uma pessoa olhando o terminal (não quando outro programa,
+# como o Claude, lê a saída). NO_COLOR desliga as cores.
+COR = False
+INTERATIVO = False
+_CORES_TAG = {"[ok]": "32", "[aviso]": "33", "[falta]": "31", "[erro]": "31", "[PAROU]": "31",
+              "[info]": "36", "[kit]": "36", "[motor]": "36"}
+_RE_TAG = re.compile(r"^(\s*)(\[[^\]]+\])(.*)$", re.S)
+_RE_TITULO = re.compile(r"^=== Kit de leads — (.+) ===$")
+
+
+def preparar_terminal():
+    global COR, INTERATIVO
+    INTERATIVO = bool(getattr(sys.stdout, "isatty", lambda: False)())
+    COR = INTERATIVO and not os.environ.get("NO_COLOR") and os.environ.get("TERM") != "dumb"
+    if COR and os.name == "nt":   # Windows: liga as cores do console (Windows 10 ou mais novo)
+        try:
+            import ctypes
+            k = ctypes.windll.kernel32
+            h = k.GetStdHandle(-11)
+            modo = ctypes.c_uint32()
+            if not (k.GetConsoleMode(h, ctypes.byref(modo)) and k.SetConsoleMode(h, modo.value | 0x0004)):
+                COR = False
+        except Exception:
+            COR = False
+
+
+def _ansi(codigo, texto):
+    return f"\033[{codigo}m{texto}\033[0m" if COR else texto
+
+
+def formatar_linha(msg):
+    m = _RE_TITULO.match(msg)
+    if m:
+        texto = f"KIT DE LEADS · {m.group(1).upper()}"
+        return "\n  " + _ansi("1;36", texto) + "\n  " + _ansi("2", "─" * len(texto))
+    m = _RE_TAG.match(msg)
+    if m and m.group(2) in _CORES_TAG:
+        return m.group(1) + _ansi("1;" + _CORES_TAG[m.group(2)], m.group(2)) + m.group(3)
+    if msg.startswith(">>> "):
+        return _ansi("1", msg)
+    return msg
+
+
+def _com_margem(texto, margem="  "):
+    return "\n".join((margem + l) if l.strip() else l for l in texto.split("\n"))
+
+
 def dizer(msg=""):
-    print(msg, flush=True)
+    formatada = formatar_linha(msg)
+    print(formatada if _RE_TITULO.match(msg) else _com_margem(formatada), flush=True)
+
+
+def andamento(texto, final=False):
+    """Linha de andamento: no terminal de uma pessoa, atualiza no lugar; senão, uma linha por vez."""
+    if INTERATIVO:
+        limpar = "\033[K" if COR else "   "
+        sys.stdout.write("\r  " + _ansi("36", texto.strip()) + limpar + ("\n" if final else ""))
+        sys.stdout.flush()
+    elif not final:
+        dizer(texto)
 
 
 def ram_mb():
@@ -344,14 +406,17 @@ def rodar_motor(nome_teste, consultas, pasta, arquivo, idioma, email, profundida
     if destino.exists():
         destino.unlink()
     log = Path(pasta) / (Path(arquivo).stem + ".log")
-    dizer(f"    coletando... (mostro o andamento a cada {INTERVALO_PROGRESSO_S} s; Ctrl+C para parar)")
+    dizer("    coletando... (Ctrl+C para parar)" if INTERATIVO else
+          f"    coletando... (mostro o andamento a cada {INTERVALO_PROGRESSO_S} s; Ctrl+C para parar)")
+    intervalo = 2 if INTERATIVO else INTERVALO_PROGRESSO_S
+    ultima_contagem, linhas_agora = -999.0, None
     inicio = time.monotonic()
     with log.open("w", encoding="utf-8", errors="replace") as f:
         proc = subprocess.Popen(cmd, stdout=f, stderr=subprocess.STDOUT)
         try:
             while True:
                 try:
-                    proc.wait(timeout=INTERVALO_PROGRESSO_S)
+                    proc.wait(timeout=intervalo)
                     codigo = proc.returncode
                     break
                 except subprocess.TimeoutExpired:
@@ -360,13 +425,16 @@ def rodar_motor(nome_teste, consultas, pasta, arquivo, idioma, email, profundida
                         parar_conteiner(nome_conteiner, proc)
                         codigo = "tempo_esgotado"
                         break
-                    dizer(texto_progresso(decorrido, contar_parcial(destino)))
+                    if decorrido - ultima_contagem >= 10:      # ler o CSV no máximo a cada 10 s
+                        linhas_agora, ultima_contagem = contar_parcial(destino), decorrido
+                    andamento(texto_progresso(decorrido, linhas_agora))
         except KeyboardInterrupt:
             # Parar o "docker run" não para o contêiner: paramos explicitamente.
             parar_conteiner(nome_conteiner, proc)
             devolver_dono(pasta)
             raise
     segundos = int(round(time.monotonic() - inicio))
+    andamento("", final=True)
     devolver_dono(pasta)
     # O motor sai com código 0 mesmo sem coletar nada: contamos as linhas do CSV.
     linhas = len(resumo_teste.ler_linhas(destino))
@@ -529,7 +597,9 @@ def cmd_buscar(a):
     saida, est = tratar_csv.tratar(tratar_csv.ler_csv(pasta / "bruto.csv"), a.ddd_padrao)
     padrao, excel = tratar_csv.salvar(saida, pasta, "leads")
     html = pasta / "relatorio.html"
-    html.write_text(gerar_relatorio.gerar(gerar_relatorio.ler_linhas(padrao), "Lista de leads"), encoding="utf-8")
+    html.write_text(gerar_relatorio.gerar(gerar_relatorio.ler_linhas(padrao), "Lista de leads", consultas),
+                    encoding="utf-8")
+    arq_painel = painel.gerar_painel(PASTA_RESULTADOS, comando_python())
     dizer(f"\nEmpresas: {est['finais']} (de {est['lidas']} coletadas; "
           f"{est['duplicadas_place_id'] + est['duplicadas_telefone']} duplicadas removidas)")
     dizer(f"Telefone: {est['celular']} celular, {est['fixo']} fixo, {est['0800']} 0800, "
@@ -538,6 +608,7 @@ def cmd_buscar(a):
           + ("" if a.email else " (rode com --email para procurar e-mails nos sites)"))
     dizer(f"\nAbra o relatório (duplo clique): {html}")
     dizer(f"Planilha para Excel: {excel}")
+    dizer(f"Painel com todas as suas buscas: {arq_painel}")
     dizer(f"Tempo total da coleta: {formatar_tempo(m['segundos'])}")
     dizer("\nO motor de coleta é o projeto aberto github.com/gosom/google-maps-scraper (Georgios Komninos).")
     dizer("Se a lista ajudou, deixar uma estrela lá é um jeito simples de apoiar quem fez.")
@@ -646,6 +717,17 @@ def cmd_limpar(a):
     return 1 if falhas else 0
 
 
+# -------------------------------------------------------------------- painel
+
+def cmd_painel(_a):
+    dizer("=== Kit de leads — painel ===")
+    destino = painel.gerar_painel(PASTA_RESULTADOS, comando_python())
+    n = len(painel.coletar(PASTA_RESULTADOS))
+    dizer(f"[ok] {n} busca(s) no painel.")
+    dizer(f"Abra com duplo clique: {destino}")
+    return 0
+
+
 # ---------------------------------------------------------------------- main
 
 def main(argv=None):
@@ -654,6 +736,7 @@ def main(argv=None):
             fluxo.reconfigure(encoding="utf-8")
         except (AttributeError, ValueError):
             pass
+    preparar_terminal()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="comando")
     sub.add_parser("verificar", help="confere a máquina e diz o que falta")
@@ -676,9 +759,10 @@ def main(argv=None):
     lp = sub.add_parser("limpar", help="remove o motor do computador (libera ~2 GB)")
     lp.add_argument("--antigas", action="store_true", help="remove só versões antigas do motor")
     lp.add_argument("--sim", action="store_true", help="não pergunta (para quem já confirmou)")
+    sub.add_parser("painel", help="(re)gera resultados/painel.html com todas as suas buscas")
     a = ap.parse_args(argv)
     acoes = {"verificar": cmd_verificar, "preparar": cmd_preparar, "testar": cmd_testar, "buscar": cmd_buscar,
-             "atualizar": cmd_atualizar, "limpar": cmd_limpar}
+             "atualizar": cmd_atualizar, "limpar": cmd_limpar, "painel": cmd_painel}
     if a.comando not in acoes:
         ap.print_help()
         return 2

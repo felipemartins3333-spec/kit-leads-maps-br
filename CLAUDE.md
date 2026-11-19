@@ -55,6 +55,7 @@ No Claude Code: `/leads-instalar` (instalar e testar) e `/leads-buscar dentistas
 | Busca | `python3 scripts/kit.py buscar --segmentos "academias" --cidades "Salvador BA"` |
 | Busca com e-mail | acrescente `--email` (mais lento: visita o site de cada empresa) |
 | Atualizar o kit e o motor | `python3 scripts/kit.py atualizar` |
+| Ver todas as buscas (painel) | `python3 scripts/kit.py painel` → abre `resultados/painel.html` |
 | Liberar espaço (remover o motor) | `python3 scripts/kit.py limpar` (pede confirmação; não apaga `resultados/`) |
 
 No Windows, troque `python3` por `py` e as barras `/` por `\`.

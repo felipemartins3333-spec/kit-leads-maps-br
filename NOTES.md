@@ -335,3 +335,23 @@ Objetivo do Felipe: gravar vídeos com o Claude Desktop tendo só um Chromebook 
 - Verificado no Chromium local: cartões batem com o CSV da demo (20; 10 WhatsApp 50%; 16 telefone
   80%; 13 site 65%; 7 e-mail 35%), filtro "Contador" = 3, área de transferência com cabeçalho +
   linhas separadas por tab, 0 requisições externas, 0 erros de JS, 0 px de rolagem lateral em 390 px.
+
+## Rodada 9 (2026-11-19) — redesenho visual (relatório, painel, terminal)
+
+- **Relatório** (`scripts/modelo_relatorio.html` + `scripts/visual.py`): tipografia com serifa do
+  sistema nos títulos (sem fonte da internet), cartões de qualidade com barra, consultas da busca no
+  topo, barra de ferramentas fixa (desktop), filtros em pílula, avatar com iniciais, ações com ícones
+  desenhados para o kit (sem logotipo de terceiros; o botão de WhatsApp usa um balão genérico),
+  domínio do site no botão, estrela e "N avaliações", modo escuro próprio, versão para impressão.
+  Contraste: menor par 4,95:1 (claro) e 5,97:1 (escuro), todos ≥ 4,5:1.
+- **Painel** (`scripts/painel.py`, `kit.py painel`): `resultados/painel.html` com um cartão por busca
+  (data, consultas, empresas, WhatsApp/site/e-mail com %, atalhos). Sem JavaScript; CSP sem rede.
+  `kit.py buscar` atualiza o painel ao fim.
+- **Terminal:** título com fio "KIT DE LEADS · …", margem, `[ok]/[aviso]/[falta]` coloridos e
+  andamento numa linha que se atualiza (relógio a cada 2 s, contagem do CSV a cada 10 s). Só quando
+  a saída é um terminal de pessoa (`isatty`) e sem `NO_COLOR`; quando o Claude lê a saída, nada de
+  cor nem `\r`. No Windows, liga o modo de cores do console (VT) e desliga se falhar.
+- Verificado no Chromium local (claro, escuro, 390 px): 0 requisições externas, 0 erros de JS,
+  0 px de rolagem lateral; botões do painel abrem o relatório certo. 65 testes passando (5 novos:
+  painel com busca/vazio, terminal com e sem cor, margem, consulta maliciosa vira texto).
+- Não testado: aparência do terminal no Windows e no Mac reais (só simulado aqui com `script`).

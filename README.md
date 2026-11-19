@@ -89,14 +89,16 @@ Para gerar de novo a partir do CSV de demonstração (precisa só de Python 3):
 
 ```bash
 python3 -I scripts/tratar_csv.py examples/demo-leads.csv
-python3 -I scripts/gerar_relatorio.py resultados/demo-leads-tratados.csv --saida examples/demo-relatorio.html
+python3 -I scripts/gerar_relatorio.py resultados/demo-leads-tratados.csv --saida examples/demo-relatorio.html --consultas examples/demo-consultas.txt
 ```
 
 ## O que tem aqui
 
 | Arquivo | Para quê |
 |---------|----------|
-| `scripts/kit.py` | **comando principal**: `verificar`, `preparar`, `testar`, `buscar`, `atualizar`, `limpar` |
+| `scripts/kit.py` | **comando principal**: `verificar`, `preparar`, `testar`, `buscar`, `atualizar`, `limpar`, `painel` |
+| `scripts/painel.py` | **painel das suas buscas** (`resultados/painel.html`): cada busca num cartão, com números e atalhos |
+| `scripts/visual.py` e `scripts/modelo_relatorio.html` | identidade visual (cores, tipografia, ícones próprios) e modelo do relatório |
 | `docs/instalacao.md` | instalação: Codespace, Windows, Mac, Linux, com ou sem Claude |
 | `.devcontainer/` | Codespace já pronto (Python, Docker, Claude Code) |
 | `.claude/commands/` | comandos do Claude Code: `/leads-instalar` e `/leads-buscar` |

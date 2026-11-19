@@ -237,5 +237,59 @@ class TesteLimpar(unittest.TestCase):
         self.assertFalse(any(c[:3] == ["docker", "volume", "rm"] for c in chamadas), "--antigas não mexe no cache")
 
 
+class TestePainel(unittest.TestCase):
+    def test_painel_com_busca_e_vazio(self):
+        import painel
+        import tratar_csv
+        import gerar_relatorio
+        demo = Path(kit.RAIZ) / "examples" / "demo-leads.csv"
+        with tempfile.TemporaryDirectory() as d:
+            vazio = painel.gerar_painel(d).read_text(encoding="utf-8")
+            self.assertIn("Nenhuma busca ainda", vazio)
+            busca = Path(d) / "busca-20261119-101500"
+            busca.mkdir()
+            (Path(d) / "outra-pasta").mkdir()   # pastas que não são busca são ignoradas
+            saida, _ = tratar_csv.tratar(tratar_csv.ler_csv(demo))
+            tratados, _excel = tratar_csv.salvar(saida, busca, "leads")
+            (busca / "consultas.txt").write_text("academias em Salvador BA\npilates em Salvador BA\n", encoding="utf-8")
+            (busca / "relatorio.html").write_text(gerar_relatorio.gerar(gerar_relatorio.ler_linhas(tratados), "x"),
+                                                  encoding="utf-8")
+            conteudo = painel.gerar_painel(d).read_text(encoding="utf-8")
+            self.assertIn("academias em Salvador BA", conteudo)
+            self.assertIn("+ 1 consulta", conteudo)
+            self.assertIn('href="busca-20261119-101500/relatorio.html"', conteudo)
+            self.assertIn("<b>20</b>", conteudo)
+            self.assertNotIn("<script", conteudo, "o painel não usa JavaScript")
+            self.assertEqual(len(painel.coletar(d)), 1)
+
+
+class TesteTerminal(unittest.TestCase):
+    def test_sem_cor_para_programas(self):
+        from unittest import mock
+        with mock.patch.object(kit, "COR", False):
+            titulo = kit.formatar_linha("=== Kit de leads — teste ===")
+            self.assertIn("KIT DE LEADS · TESTE", titulo)
+            self.assertNotIn("\033[", titulo)
+            self.assertEqual(kit.formatar_linha("[ok] tudo certo"), "[ok] tudo certo")
+
+    def test_com_cor_para_pessoas(self):
+        from unittest import mock
+        with mock.patch.object(kit, "COR", True):
+            self.assertIn("\033[1;32m[ok]\033[0m", kit.formatar_linha("[ok] tudo certo"))
+            self.assertIn("\033[1;31m[falta]", kit.formatar_linha("[falta] Docker"))
+
+    def test_margem(self):
+        self.assertEqual(kit._com_margem("a\n\nb"), "  a\n\n  b")
+
+
+class TesteConsultasNoRelatorio(unittest.TestCase):
+    def test_consulta_maliciosa_vira_texto(self):
+        import gerar_relatorio
+        pagina = gerar_relatorio.gerar([], "t", ["<script>alert(1)</script> em X BA"])
+        self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt; em X BA", pagina)
+        self.assertNotIn("<script>alert(1)</script>", pagina)
+        self.assertNotRegex(pagina, r"__[A-Z_]+__", "nenhum marcador pode sobrar na página")
+
+
 if __name__ == "__main__":
     unittest.main()

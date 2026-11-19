@@ -20,409 +20,15 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import visual  # noqa: E402
+
 csv.field_size_limit(sys.maxsize)
 
 CAMPOS = ["nome", "categoria", "endereco", "telefone", "tipo_telefone", "whatsapp", "site",
           "email", "emails", "nota", "avaliacoes", "status", "link_maps", "fonte"]
 
-MODELO = r"""<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
-<meta name="referrer" content="no-referrer">
-<title>__TITULO__</title>
-<style>
-:root{
-  --fundo:#F5F1E8; --papel:#FFFFFF; --tinta:#1E2A2D; --suave:#526068; --linha:#D9D2C3;
-  --marca:#0B6B66; --marca-texto:#FFFFFF; --zap:#17703F; --zap-texto:#FFFFFF;
-  --aviso-fundo:#FFF1D6; --aviso-texto:#5B3A00; --chip-fundo:#EDE7D8;
-  --sombra:0 1px 2px rgba(30,42,45,.08);
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --fundo:#101719; --papel:#172124; --tinta:#E7EEEF; --suave:#A3B3B8; --linha:#2A383C;
-    --marca:#5CCBC3; --marca-texto:#062321; --zap:#3FBF7F; --zap-texto:#04210F;
-    --aviso-fundo:#3A2C0E; --aviso-texto:#FFE2A8; --chip-fundo:#22302F; --sombra:none;
-  }
-}
-*{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--fundo);color:var(--tinta);
-  font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
-.pagina{max-width:1180px;margin:0 auto;padding:20px 16px 48px}
-h1{font:700 1.7rem/1.2 Georgia,"Times New Roman",serif;margin:0 0 4px;letter-spacing:-.01em}
-.sub{margin:0;color:var(--suave)}
-.aviso{margin:16px 0 0;padding:10px 14px;border-radius:10px;background:var(--aviso-fundo);color:var(--aviso-texto);font-size:.95rem}
-.painel{margin:18px 0 12px;padding:14px;background:var(--papel);border:1px solid var(--linha);border-radius:14px;box-shadow:var(--sombra)}
-.linha-controles{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-label.busca{flex:1 1 260px;display:block}
-.rotulo{display:block;font-size:.85rem;color:var(--suave);margin:0 0 4px}
-input[type=search],select{width:100%;font:inherit;color:var(--tinta);background:var(--papel);
-  border:1px solid var(--suave);border-radius:10px;padding:10px 12px;min-height:44px}
-.ordem{flex:0 1 220px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.chip{position:relative}
-.chip input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
-.chip span{display:inline-block;padding:9px 14px;min-height:40px;border-radius:999px;border:1px solid var(--suave);
-  background:var(--chip-fundo);color:var(--tinta);font-size:.95rem}
-.chip input:checked + span{background:var(--marca);color:var(--marca-texto);border-color:var(--marca);font-weight:600}
-.chip input:focus-visible + span,button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--marca);outline-offset:2px}
-button{font:inherit;cursor:pointer;min-height:44px;padding:9px 16px;border-radius:10px;border:1px solid var(--marca);
-  background:var(--papel);color:var(--tinta)}
-button.principal{background:var(--marca);color:var(--marca-texto);font-weight:600}
-.barra{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:12px 0}
-.contagem{margin:0;color:var(--suave)}
-.contagem strong{color:var(--tinta)}
-table{width:100%;border-collapse:separate;border-spacing:0;background:var(--papel);border:1px solid var(--linha);border-radius:14px;overflow:hidden;box-shadow:var(--sombra)}
-caption{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-th{position:sticky;top:0;text-align:left;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;color:var(--suave);
-  background:var(--chip-fundo);padding:10px 12px;border-bottom:1px solid var(--linha)}
-th button{all:unset;cursor:pointer;text-transform:inherit;letter-spacing:inherit;font:inherit}
-th button:focus-visible{outline:3px solid var(--marca)}
-td{padding:12px;border-bottom:1px solid var(--linha);vertical-align:top}
-tr:last-child td{border-bottom:0}
-.nome{font-weight:650}
-.cat{display:block;color:var(--suave);font-size:.9rem}
-.fone{font-variant-numeric:tabular-nums;white-space:nowrap}
-.tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:var(--chip-fundo);color:var(--suave);font-size:.75rem;vertical-align:1px}
-.acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-a.botao,span.botao{display:inline-block;padding:8px 12px;min-height:40px;border-radius:10px;font-weight:600;text-decoration:none;border:1px solid transparent}
-a.zap,span.zap{background:var(--zap);color:var(--zap-texto)}
-span.zap.demo{opacity:.75;border:1px dashed var(--zap-texto);cursor:not-allowed}
-a.link{color:var(--marca);text-decoration:underline;text-underline-offset:3px;word-break:break-word}
-.nota{font-variant-numeric:tabular-nums;white-space:nowrap}
-.vazio{color:var(--suave)}
-.mais{display:block;margin:16px auto 0}
-.rodape{margin-top:28px;padding-top:14px;border-top:1px solid var(--linha);color:var(--suave);font-size:.88rem}
-.rodape p{margin:6px 0}
-.escondido{display:none!important}
-.resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:16px 0 0}
-.cartao{background:var(--papel);border:1px solid var(--linha);border-radius:12px;padding:10px 14px;box-shadow:var(--sombra)}
-.cartao .valor{display:block;font:700 1.5rem/1.15 Georgia,"Times New Roman",serif;font-variant-numeric:tabular-nums}
-.cartao .legenda{display:block;color:var(--suave);font-size:.85rem}
-.status-copia{margin:0 0 8px;min-height:1.2em;color:var(--suave);font-size:.92rem}
-@media (max-width:760px){
-  table,tbody,tr,td{display:block;width:100%}
-  thead{display:none}
-  table{background:transparent;border:0;box-shadow:none;border-radius:0}
-  tr{background:var(--papel);border:1px solid var(--linha);border-radius:14px;margin:0 0 12px;padding:6px 0;box-shadow:var(--sombra)}
-  td{border:0;padding:6px 14px}
-  td[data-rotulo]::before{content:attr(data-rotulo);display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--suave)}
-  td.sem-rotulo::before{display:none}
-}
-</style>
-</head>
-<body>
-<div class="pagina">
-  <header>
-    <h1>__TITULO__</h1>
-    <p class="sub">Gerado em __GERADO__ · <span id="total-geral">__TOTAL__</span> empresas · arquivo local, funciona sem internet</p>
-    <p class="aviso" id="aviso-demo" hidden><strong>Dados fictícios de demonstração.</strong> Nenhuma empresa, telefone ou e-mail aqui existe. O botão de WhatsApp está desativado de propósito nesta demonstração.</p>
-  </header>
-
-  <section class="resumo" id="resumo" aria-label="Qualidade dos contatos da lista na tela"></section>
-
-  <section class="painel" aria-label="Busca e filtros">
-    <div class="linha-controles">
-      <label class="busca"><span class="rotulo">Buscar por nome, categoria, endereço ou e-mail</span>
-        <input type="search" id="busca" placeholder="Ex.: odonto, centro, contato@..." autocomplete="off"></label>
-      <label class="ordem"><span class="rotulo">Ordenar por</span>
-        <select id="ordem">
-          <option value="nome">Nome (A a Z)</option>
-          <option value="nota">Melhor nota</option>
-          <option value="avaliacoes">Mais avaliações</option>
-          <option value="zap">Com WhatsApp primeiro</option>
-        </select></label>
-      <label class="ordem"><span class="rotulo">Categoria</span>
-        <select id="categoria"><option value="">Todas as categorias</option></select></label>
-    </div>
-    <div class="chips" role="group" aria-label="Filtros">
-      <label class="chip"><input type="checkbox" data-filtro="telefone"><span>Tem telefone</span></label>
-      <label class="chip"><input type="checkbox" data-filtro="zap"><span>Tem WhatsApp (celular)</span></label>
-      <label class="chip"><input type="checkbox" data-filtro="site"><span>Tem site</span></label>
-      <label class="chip"><input type="checkbox" data-filtro="email"><span>Tem e-mail</span></label>
-    </div>
-  </section>
-
-  <div class="barra">
-    <p class="contagem" id="contagem" aria-live="polite"></p>
-    <div class="acoes">
-      <button type="button" id="limpar">Limpar filtros</button>
-      <button type="button" id="copiar">Copiar para Google Sheets</button>
-      <button type="button" class="principal" id="baixar">Baixar o que está na tela (CSV para Excel)</button>
-    </div>
-  </div>
-  <p class="status-copia" id="status-copia" aria-live="polite"></p>
-
-  <table>
-    <caption>Lista de empresas</caption>
-    <thead><tr>
-      <th scope="col"><button type="button" data-ordenar="nome" title="Ordenar por nome">Empresa</button></th>
-      <th scope="col">Telefone</th>
-      <th scope="col">Contato</th>
-      <th scope="col"><button type="button" data-ordenar="nota" title="Ordenar por nota">Nota</button></th>
-      <th scope="col">Endereço</th>
-    </tr></thead>
-    <tbody id="corpo"></tbody>
-  </table>
-  <button type="button" class="mais escondido" id="mais">Mostrar mais</button>
-
-  <footer class="rodape">
-    <p><strong>Antes de usar esta lista.</strong> Coletar dados do Google Maps de forma automática pode contrariar os termos de uso do Google.
-    Telefones e e-mails de empresas podem ser dados pessoais (sócios, MEIs, profissionais liberais): a LGPD exige finalidade clara,
-    base legal e respeito a quem pedir para não ser contatado. Isto não é aconselhamento jurídico.</p>
-    <p>Empresa sem telefone, site ou e-mail nesta lista quer dizer que a coleta não encontrou esse dado no Google Maps,
-    não que a empresa não tenha.</p>
-    <p>Os dados ficam só neste arquivo, no seu computador. Esta página não envia nada para a internet.</p>
-  </footer>
-</div>
-
-<script id="dados" type="application/json">__DADOS__</script>
-<script>
-(function () {
-  "use strict";
-  var LINHAS = JSON.parse(document.getElementById("dados").textContent);
-  var POR_PAGINA = 100;
-  var estado = { busca: "", filtros: {}, ordem: "nome", categoria: "", visiveis: POR_PAGINA };
-  var RE_ZAP = /^https:\/\/wa\.me\/55\d{10,11}$/;
-  var RE_HTTP = /^https?:\/\/[^\s]+$/i;
-  var RE_EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/;
-
-  var corpo = document.getElementById("corpo");
-  var contagem = document.getElementById("contagem");
-  var botaoMais = document.getElementById("mais");
-
-  function norm(s) { return (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
-  function num(s) { var n = parseFloat(String(s || "").replace(",", ".")); return isNaN(n) ? 0 : n; }
-  function ehDemo(l) { return l.fonte === "DEMO"; }
-  function temZap(l) { return RE_ZAP.test(l.whatsapp || ""); }
-
-  LINHAS.forEach(function (l) {
-    l._busca = norm([l.nome, l.categoria, l.endereco, l.telefone, l.emails || l.email, l.site].join(" "));
-    l._nota = num(l.nota); l._aval = num(l.avaliacoes);
-  });
-  if (LINHAS.some(ehDemo)) document.getElementById("aviso-demo").hidden = false;
-
-  function passa(l) {
-    if (estado.busca && l._busca.indexOf(estado.busca) === -1) return false;
-    if (estado.categoria && l.categoria !== estado.categoria) return false;
-    var f = estado.filtros;
-    if (f.telefone && !l.telefone) return false;
-    if (f.zap && !temZap(l)) return false;
-    if (f.site && !l.site) return false;
-    if (f.email && !l.email) return false;
-    return true;
-  }
-  function comparar(a, b) {
-    var o = estado.ordem;
-    if (o === "nota") return (b._nota - a._nota) || (b._aval - a._aval) || a.nome.localeCompare(b.nome, "pt-BR");
-    if (o === "avaliacoes") return (b._aval - a._aval) || a.nome.localeCompare(b.nome, "pt-BR");
-    if (o === "zap") return (temZap(b) - temZap(a)) || a.nome.localeCompare(b.nome, "pt-BR");
-    return a.nome.localeCompare(b.nome, "pt-BR");
-  }
-  function el(tag, classe, texto) {
-    var e = document.createElement(tag);
-    if (classe) e.className = classe;
-    if (texto != null) e.textContent = texto;
-    return e;
-  }
-  function celula(rotulo, classe) {
-    var td = document.createElement("td");
-    if (rotulo) td.setAttribute("data-rotulo", rotulo); else td.className = "sem-rotulo";
-    if (classe) td.className += (td.className ? " " : "") + classe;
-    return td;
-  }
-  function linkSeguro(url, texto, classe) {
-    var a = el("a", classe, texto);
-    a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
-    return a;
-  }
-  function criarLinha(l) {
-    var tr = document.createElement("tr");
-
-    var tdNome = celula("Empresa");
-    tdNome.appendChild(el("span", "nome", l.nome));
-    if (l.categoria) tdNome.appendChild(el("span", "cat", l.categoria));
-    tr.appendChild(tdNome);
-
-    var tdFone = celula("Telefone");
-    if (l.telefone) {
-      var f = el("span", "fone", l.telefone);
-      tdFone.appendChild(f);
-      var tipos = { celular: "celular", fixo: "fixo", "0800": "0800" };
-      if (tipos[l.tipo_telefone]) tdFone.appendChild(el("span", "tag", tipos[l.tipo_telefone]));
-    } else tdFone.appendChild(el("span", "vazio", "sem telefone"));
-    tr.appendChild(tdFone);
-
-    var tdContato = celula("Contato");
-    var acoes = el("div", "acoes");
-    if (temZap(l)) {
-      if (ehDemo(l)) {
-        var d = el("span", "botao zap demo", "WhatsApp (demo)");
-        d.setAttribute("aria-disabled", "true");
-        acoes.appendChild(d);
-      } else acoes.appendChild(linkSeguro(l.whatsapp, "WhatsApp", "botao zap"));
-    }
-    if (l.site && RE_HTTP.test(l.site)) acoes.appendChild(linkSeguro(l.site, "Site", "link"));
-    if (l.email && RE_EMAIL.test(l.email)) {
-      var m = el("a", "link", l.email);
-      if (!ehDemo(l)) m.href = "mailto:" + l.email;
-      acoes.appendChild(m);
-    }
-    if (l.link_maps && RE_HTTP.test(l.link_maps)) acoes.appendChild(linkSeguro(l.link_maps, "Ver no mapa", "link"));
-    if (!acoes.childNodes.length) acoes.appendChild(el("span", "vazio", "sem contato direto"));
-    tdContato.appendChild(acoes);
-    tr.appendChild(tdContato);
-
-    var tdNota = celula("Nota", "nota");
-    if (l._nota) tdNota.textContent = "★ " + String(l.nota).replace(".", ",") + (l._aval ? " (" + l._aval + ")" : "");
-    else tdNota.appendChild(el("span", "vazio", "sem nota"));
-    tr.appendChild(tdNota);
-
-    var tdEnd = celula("Endereço");
-    tdEnd.textContent = l.endereco || "";
-    tr.appendChild(tdEnd);
-    return tr;
-  }
-
-  var atuais = [];
-  // Cartões de qualidade dos contatos (da lista que está na tela).
-  function desenharResumo(lista) {
-    var caixa = document.getElementById("resumo"), n = lista.length;
-    function conta(f) { return lista.filter(f).length; }
-    var itens = [
-      ["Empresas na tela", String(n), ""],
-      ["Com WhatsApp (celular)", conta(temZap), "zap"],
-      ["Com telefone", conta(function (l) { return !!l.telefone; }), ""],
-      ["Com site", conta(function (l) { return !!l.site; }), ""],
-      ["Com e-mail", conta(function (l) { return !!l.email; }), ""]
-    ];
-    caixa.textContent = "";
-    itens.forEach(function (it, i) {
-      var c = el("div", "cartao");
-      var valor = i === 0 ? it[1] : it[1] + (n ? " (" + Math.round(100 * it[1] / n) + "%)" : "");
-      c.appendChild(el("span", "valor", valor));
-      c.appendChild(el("span", "legenda", it[0]));
-      caixa.appendChild(c);
-    });
-  }
-
-  // Lista de categorias, da mais comum para a menos comum.
-  (function () {
-    var cont = {};
-    LINHAS.forEach(function (l) { if (l.categoria) cont[l.categoria] = (cont[l.categoria] || 0) + 1; });
-    var sel = document.getElementById("categoria");
-    Object.keys(cont).sort(function (a, b) { return (cont[b] - cont[a]) || a.localeCompare(b, "pt-BR"); })
-      .forEach(function (c) {
-        var o = document.createElement("option");
-        o.value = c; o.textContent = c + " (" + cont[c] + ")";
-        sel.appendChild(o);
-      });
-  })();
-
-  function atualizar() {
-    atuais = LINHAS.filter(passa).sort(comparar);
-    desenharResumo(atuais);
-    corpo.textContent = "";
-    var frag = document.createDocumentFragment();
-    atuais.slice(0, estado.visiveis).forEach(function (l) { frag.appendChild(criarLinha(l)); });
-    corpo.appendChild(frag);
-    contagem.textContent = "";
-    var forte = el("strong", null, String(atuais.length));
-    contagem.appendChild(forte);
-    contagem.appendChild(document.createTextNode(" de " + LINHAS.length + " empresas na tela"));
-    var restam = atuais.length - estado.visiveis;
-    botaoMais.classList.toggle("escondido", restam <= 0);
-    if (restam > 0) botaoMais.textContent = "Mostrar mais (" + restam + " restantes)";
-    if (!atuais.length) {
-      var tr = document.createElement("tr"), td = el("td", "sem-rotulo");
-      td.colSpan = 5; td.textContent = "Nenhuma empresa com esses filtros. Tente limpar os filtros.";
-      tr.appendChild(td); corpo.appendChild(tr);
-    }
-  }
-  function reiniciar() { estado.visiveis = POR_PAGINA; document.getElementById("status-copia").textContent = ""; atualizar(); }
-
-  document.getElementById("busca").addEventListener("input", function (e) { estado.busca = norm(e.target.value.trim()); reiniciar(); });
-  document.getElementById("ordem").addEventListener("change", function (e) { estado.ordem = e.target.value; reiniciar(); });
-  document.getElementById("categoria").addEventListener("change", function (e) { estado.categoria = e.target.value; reiniciar(); });
-  Array.prototype.forEach.call(document.querySelectorAll("[data-filtro]"), function (c) {
-    c.addEventListener("change", function () { estado.filtros[c.getAttribute("data-filtro")] = c.checked; reiniciar(); });
-  });
-  Array.prototype.forEach.call(document.querySelectorAll("[data-ordenar]"), function (b) {
-    b.addEventListener("click", function () {
-      estado.ordem = b.getAttribute("data-ordenar");
-      document.getElementById("ordem").value = estado.ordem; reiniciar();
-    });
-  });
-  botaoMais.addEventListener("click", function () { estado.visiveis += POR_PAGINA; atualizar(); });
-  document.getElementById("limpar").addEventListener("click", function () {
-    estado = { busca: "", filtros: {}, ordem: "nome", categoria: "", visiveis: POR_PAGINA };
-    document.getElementById("categoria").value = "";
-    document.getElementById("status-copia").textContent = "";
-    document.getElementById("busca").value = ""; document.getElementById("ordem").value = "nome";
-    Array.prototype.forEach.call(document.querySelectorAll("[data-filtro]"), function (c) { c.checked = false; });
-    atualizar();
-  });
-
-  // Download do que está na tela: CSV para Excel brasileiro (; , UTF-8 com BOM, decimal com vírgula).
-  function celulaCsv(v) {
-    v = String(v == null ? "" : v);
-    if (/^[=+\-@\t\r]/.test(v)) v = "'" + v;          // evita fórmula no Excel
-    return /[;"\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
-  }
-  document.getElementById("baixar").addEventListener("click", function () {
-    var cols = [["nome", "nome"], ["categoria", "categoria"], ["endereco", "endereco"], ["telefone", "telefone"],
-                ["tipo_telefone", "tipo_telefone"], ["whatsapp", "whatsapp"], ["site", "site"], ["email", "email"],
-                ["emails", "emails"], ["nota", "nota"], ["avaliacoes", "avaliacoes"], ["link_maps", "link_maps"], ["fonte", "fonte"]];
-    var linhas = [cols.map(function (c) { return c[0]; }).join(";")];
-    atuais.forEach(function (l) {
-      linhas.push(cols.map(function (c) {
-        var v = l[c[1]];
-        if (c[0] === "nota") v = String(v || "").replace(".", ",");
-        return celulaCsv(v);
-      }).join(";"));
-    });
-    var blob = new Blob(["\ufeff" + linhas.join("\r\n") + "\r\n"], { type: "text/csv;charset=utf-8" });
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob); a.download = "leads-filtrados.csv";
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
-  });
-
-  // Copiar o que está na tela para colar no Google Sheets (separado por tabulação).
-  function celulaTsv(v) {
-    v = String(v == null ? "" : v).replace(/[\t\r\n]+/g, " ");
-    return /^[=+\-@]/.test(v) ? "'" + v : v;     // evita fórmula na planilha
-  }
-  document.getElementById("copiar").addEventListener("click", function () {
-    var cols = ["nome", "categoria", "endereco", "telefone", "tipo_telefone", "whatsapp", "site", "email",
-                "nota", "avaliacoes", "link_maps"];
-    var texto = [cols.join("\t")].concat(atuais.map(function (l) {
-      return cols.map(function (c) { return celulaTsv(c === "nota" ? String(l[c] || "").replace(".", ",") : l[c]); }).join("\t");
-    })).join("\n");
-    var status = document.getElementById("status-copia");
-    function ok() { status.textContent = atuais.length + " empresas copiadas. Abra o Google Sheets e cole (Ctrl+V)."; }
-    function reserva() {
-      var area = document.createElement("textarea");
-      area.value = texto; area.setAttribute("readonly", ""); area.style.position = "fixed"; area.style.opacity = "0";
-      document.body.appendChild(area); area.select();
-      var deu = false;
-      try { deu = document.execCommand("copy"); } catch (e) { deu = false; }
-      document.body.removeChild(area);
-      if (deu) ok(); else status.textContent = "Não consegui copiar. Use o botão de baixar e abra o arquivo no Sheets.";
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok, reserva);
-    else reserva();
-  });
-
-  atualizar();
-})();
-</script>
-</body>
-</html>
-"""
+MODELO = (Path(__file__).resolve().parent / "modelo_relatorio.html").read_text(encoding="utf-8")
 
 
 def json_seguro_para_html(obj):
@@ -438,12 +44,36 @@ def ler_linhas(caminho):
         return [{c: (r.get(c) or "") for c in CAMPOS} for r in leitor]
 
 
-def gerar(linhas, titulo):
+def lista_consultas_html(consultas, maximo=12):
+    consultas = [c for c in (consultas or []) if c.strip()]
+    if not consultas:
+        return ""
+    itens = "".join(f"<li>{html.escape(c)}</li>" for c in consultas[:maximo])
+    if len(consultas) > maximo:
+        itens += f"<li>+{len(consultas) - maximo} consultas</li>"
+    return f'<ul class="consultas" aria-label="Buscas desta lista">{itens}</ul>'
+
+
+def gerar(linhas, titulo, consultas=None):
     agora = datetime.now().strftime("%d/%m/%Y %H:%M")
-    return (MODELO.replace("__TITULO__", html.escape(titulo))
-                  .replace("__GERADO__", agora)
-                  .replace("__TOTAL__", str(len(linhas)))
-                  .replace("__DADOS__", json_seguro_para_html(linhas)))
+    trocas = [
+        ("__ESTILO_BASE__", visual.ESTILO_BASE),
+        ("__MARCA__", visual.MARCA_SVG),
+        ("__ICONE_BUSCA__", visual.icone_svg("busca")),
+        ("__ICONE_LIMPAR__", visual.icone_svg("limpar")),
+        ("__ICONE_COPIAR__", visual.icone_svg("copiar")),
+        ("__ICONE_BAIXAR__", visual.icone_svg("baixar")),
+        ("__ICONES_JSON__", json_seguro_para_html(visual.ICONES)),
+        ("__TITULO__", html.escape(titulo)),
+        ("__GERADO__", agora),
+        ("__TOTAL__", str(len(linhas))),
+        ("__CONSULTAS__", lista_consultas_html(consultas)),
+    ]
+    pagina = MODELO
+    for marcador, valor in trocas:
+        pagina = pagina.replace(marcador, valor)
+    # Os dados entram por último, para que nenhum texto vindo do CSV seja tratado como marcador.
+    return pagina.replace("__DADOS__", json_seguro_para_html(linhas))
 
 
 def main(argv=None):
@@ -451,6 +81,7 @@ def main(argv=None):
     ap.add_argument("entrada", help="CSV tratado (saída de tratar_csv.py, '-tratados.csv')")
     ap.add_argument("--saida", help="arquivo HTML de saída (padrão: ao lado da entrada)")
     ap.add_argument("--titulo", default="Lista de leads", help="título da página")
+    ap.add_argument("--consultas", help="arquivo com as consultas da busca (aparecem no topo da página)")
     a = ap.parse_args(argv)
     entrada = Path(a.entrada)
     if not entrada.exists():
@@ -462,7 +93,11 @@ def main(argv=None):
         return 1
     saida = Path(a.saida) if a.saida else entrada.with_suffix(".html")
     saida.parent.mkdir(parents=True, exist_ok=True)
-    saida.write_text(gerar(linhas, a.titulo), encoding="utf-8")
+    consultas = None
+    if a.consultas and Path(a.consultas).exists():
+        consultas = [c.strip() for c in Path(a.consultas).read_text(encoding="utf-8-sig").splitlines()
+                     if c.strip() and not c.strip().startswith("#")]
+    saida.write_text(gerar(linhas, a.titulo, consultas), encoding="utf-8")
     print(f"Relatório gerado: {saida} ({len(linhas)} empresas, {saida.stat().st_size // 1024} KB)")
     return 0
 
