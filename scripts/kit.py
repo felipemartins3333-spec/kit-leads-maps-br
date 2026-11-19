@@ -394,6 +394,11 @@ def explicar_zero_linhas(pasta):
     dizer("  - o Google pode ter pedido confirmação ou limitado o acesso temporariamente")
     dizer("    (mais comum em servidores na nuvem, como Codespace ou VPS);")
     dizer("  - pouca memória: o navegador do motor pode ter travado.")
+    dizer("O que tentar, nesta ordem:")
+    dizer("  1. Confira o texto da busca: segmento + cidade + UF (ex.: 'academias em Salvador BA').")
+    dizer("  2. Espere alguns minutos e rode de novo com menos consultas.")
+    dizer("  3. Troque por um nome mais comum do segmento ou por bairros (ex.: 'academias em Pituba, Salvador BA').")
+    dizer("  4. Só depois aumente a profundidade (--profundidade 2).")
 
 
 def registrar_ambiente(pasta, info):
@@ -533,7 +538,9 @@ def cmd_buscar(a):
           + ("" if a.email else " (rode com --email para procurar e-mails nos sites)"))
     dizer(f"\nAbra o relatório (duplo clique): {html}")
     dizer(f"Planilha para Excel: {excel}")
-    dizer(f"Tempo total da coleta: {m['segundos']}s")
+    dizer(f"Tempo total da coleta: {formatar_tempo(m['segundos'])}")
+    dizer("\nO motor de coleta é o projeto aberto github.com/gosom/google-maps-scraper (Georgios Komninos).")
+    dizer("Se a lista ajudou, deixar uma estrela lá é um jeito simples de apoiar quem fez.")
     return 0
 
 

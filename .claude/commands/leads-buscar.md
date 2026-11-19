@@ -26,12 +26,15 @@ Siga o `CLAUDE.md` deste repositório. Fale em português simples.
    `python3 scripts/kit.py buscar --segmentos "SEGMENTO 1" "SEGMENTO 2" --cidades "CIDADE UF"`
 
    acrescentando `--email` e/ou `--profundidade N` se combinado. Para mais de 30 consultas o kit recusa;
-   só use `--limite` se a pessoa pedir de propósito, depois de avisar do risco. Avise que o terminal pode
-   ficar alguns minutos em silêncio.
+   só use `--limite` se a pessoa pedir de propósito, depois de avisar do risco. Avise que pode levar alguns
+   minutos; o kit mostra o andamento a cada 20 segundos.
 
 5. **Entregar** com os números que o kit imprimiu (não estime):
    - quantas empresas, quantas com celular/WhatsApp, fixo, site e e-mail;
    - o caminho do `relatorio.html` (duplo clique: busca, filtros e botão de WhatsApp, funciona sem
      internet) e do `leads-excel.csv` (abre no Excel em português).
    Não cole a lista inteira no chat. Se a pessoa pedir exemplos, mostre poucas linhas.
-   Se vier 0 empresas, explique as causas que o kit mostrou e sugira esperar e tentar com menos consultas.
+   Se vier 0 empresas, explique as causas e siga o "O que tentar" que o kit mostrou, um passo de cada vez.
+   Em cidade grande, sugira dividir por bairros em vez de aumentar muito a profundidade.
+   Na primeira lista que der certo na conversa, lembre uma vez que o motor é o projeto aberto do gosom
+   (github.com/gosom/google-maps-scraper) e que dar uma estrela lá apoia o autor.

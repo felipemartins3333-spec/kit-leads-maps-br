@@ -178,6 +178,8 @@ python3 scripts/kit.py buscar --segmentos "clínicas odontológicas" --cidades "
 - Vários segmentos ou cidades: `--segmentos "academias" "pilates" --cidades "Salvador BA" "Feira de Santana BA"`.
 - Procurar e-mails nos sites (mais lento): acrescente `--email`.
 - Mais resultados por consulta: `--profundidade 2` ou `3` (mais tempo e mais risco de bloqueio).
+- **Cidade grande?** O Google Maps mostra um número limitado de empresas por busca. Em vez de aumentar
+  muito a profundidade, divida por bairros: `--cidades "Pituba, Salvador BA" "Barra, Salvador BA"`.
 
 O resultado fica em `resultados/busca-AAAAMMDD-HHMMSS/`:
 - `relatorio.html`: abra com duplo clique (busca, filtros e botão de WhatsApp; funciona sem internet);

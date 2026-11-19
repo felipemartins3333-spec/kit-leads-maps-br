@@ -109,6 +109,10 @@ class TesteNaMaquinaReal(unittest.TestCase):
             conteudo = html.read_text(encoding="utf-8")
             self.assertIn("connect-src 'none'", conteudo)
             self.assertIn("Odonto Sorriso de Mentira", conteudo)
+            self.assertIn('id="categoria"', conteudo)
+            self.assertIn("Qualidade dos contatos", conteudo)
+            self.assertIn('id="copiar"', conteudo)
+            self.assertIn("a coleta não encontrou", conteudo)
 
     def test_mostrar_comando_com_caminho_deste_sistema(self):
         self.assertEqual(kit.main(["testar", "--mostrar-comando"]), 0)

@@ -314,3 +314,24 @@ Objetivo do Felipe: gravar vídeos com o Claude Desktop tendo só um Chromebook 
 - 60 testes passando (8 novos: versão fixa, progresso com processo falso escrevendo CSV,
   atualizar com repositório git de teste incluindo "não apagar mudanças da pessoa", limpar sem
   confirmação não remove nada, `--antigas` preserva a versão atual).
+
+## Rodada 8 (2026-11-19) — 2ª comparação completa (painel e skill do vzbaggio; results/recovery do gosom)
+
+- Achados e o que foi feito (implementação própria, sem copiar):
+  - Painel do vzbaggio tem indicadores de qualidade dos contatos, filtro por categoria e "copiar
+    para Sheets". **Feito no nosso HTML:** cartões (empresas, WhatsApp, telefone, site, e-mail, com %
+    da lista filtrada), filtro por categoria (ordenado por quantidade) e botão "Copiar para Google
+    Sheets" (TSV, com proteção contra fórmula e alternativa quando a área de transferência falha).
+  - Skill do gosom trata "0 resultados" com passos a tentar e avisa que contato ausente não quer
+    dizer que a empresa não tem. **Feito:** `kit.py` mostra "O que tentar, nesta ordem" (texto,
+    esperar e reduzir, nome mais comum ou bairros, só depois profundidade) e o relatório diz que
+    ausência = "a coleta não encontrou".
+  - Skill do gosom sugere estrela no repositório após o 1º sucesso. **Feito (crédito):** `kit.py
+    buscar` e `/leads-buscar` lembram, uma vez, que o motor é do gosom.
+  - Dica de cidade grande: dividir por bairros (`docs/instalacao.md`, `/leads-buscar`).
+- **Não feito, de propósito:** mapa com pinos (precisaria baixar mapas da internet; o relatório é
+  offline e com CSP sem rede), interface web, proxies, grade de coordenadas, e-mail ligado por padrão
+  (o vzbaggio liga; nós mantemos desligado porque deixa tudo mais lento e mais "raspagem").
+- Verificado no Chromium local: cartões batem com o CSV da demo (20; 10 WhatsApp 50%; 16 telefone
+  80%; 13 site 65%; 7 e-mail 35%), filtro "Contador" = 3, área de transferência com cabeçalho +
+  linhas separadas por tab, 0 requisições externas, 0 erros de JS, 0 px de rolagem lateral em 390 px.

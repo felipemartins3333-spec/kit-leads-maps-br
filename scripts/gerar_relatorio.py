@@ -98,6 +98,11 @@ a.link{color:var(--marca);text-decoration:underline;text-underline-offset:3px;wo
 .rodape{margin-top:28px;padding-top:14px;border-top:1px solid var(--linha);color:var(--suave);font-size:.88rem}
 .rodape p{margin:6px 0}
 .escondido{display:none!important}
+.resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:16px 0 0}
+.cartao{background:var(--papel);border:1px solid var(--linha);border-radius:12px;padding:10px 14px;box-shadow:var(--sombra)}
+.cartao .valor{display:block;font:700 1.5rem/1.15 Georgia,"Times New Roman",serif;font-variant-numeric:tabular-nums}
+.cartao .legenda{display:block;color:var(--suave);font-size:.85rem}
+.status-copia{margin:0 0 8px;min-height:1.2em;color:var(--suave);font-size:.92rem}
 @media (max-width:760px){
   table,tbody,tr,td{display:block;width:100%}
   thead{display:none}
@@ -117,6 +122,8 @@ a.link{color:var(--marca);text-decoration:underline;text-underline-offset:3px;wo
     <p class="aviso" id="aviso-demo" hidden><strong>Dados fictícios de demonstração.</strong> Nenhuma empresa, telefone ou e-mail aqui existe. O botão de WhatsApp está desativado de propósito nesta demonstração.</p>
   </header>
 
+  <section class="resumo" id="resumo" aria-label="Qualidade dos contatos da lista na tela"></section>
+
   <section class="painel" aria-label="Busca e filtros">
     <div class="linha-controles">
       <label class="busca"><span class="rotulo">Buscar por nome, categoria, endereço ou e-mail</span>
@@ -128,6 +135,8 @@ a.link{color:var(--marca);text-decoration:underline;text-underline-offset:3px;wo
           <option value="avaliacoes">Mais avaliações</option>
           <option value="zap">Com WhatsApp primeiro</option>
         </select></label>
+      <label class="ordem"><span class="rotulo">Categoria</span>
+        <select id="categoria"><option value="">Todas as categorias</option></select></label>
     </div>
     <div class="chips" role="group" aria-label="Filtros">
       <label class="chip"><input type="checkbox" data-filtro="telefone"><span>Tem telefone</span></label>
@@ -141,9 +150,11 @@ a.link{color:var(--marca);text-decoration:underline;text-underline-offset:3px;wo
     <p class="contagem" id="contagem" aria-live="polite"></p>
     <div class="acoes">
       <button type="button" id="limpar">Limpar filtros</button>
+      <button type="button" id="copiar">Copiar para Google Sheets</button>
       <button type="button" class="principal" id="baixar">Baixar o que está na tela (CSV para Excel)</button>
     </div>
   </div>
+  <p class="status-copia" id="status-copia" aria-live="polite"></p>
 
   <table>
     <caption>Lista de empresas</caption>
@@ -162,6 +173,8 @@ a.link{color:var(--marca);text-decoration:underline;text-underline-offset:3px;wo
     <p><strong>Antes de usar esta lista.</strong> Coletar dados do Google Maps de forma automática pode contrariar os termos de uso do Google.
     Telefones e e-mails de empresas podem ser dados pessoais (sócios, MEIs, profissionais liberais): a LGPD exige finalidade clara,
     base legal e respeito a quem pedir para não ser contatado. Isto não é aconselhamento jurídico.</p>
+    <p>Empresa sem telefone, site ou e-mail nesta lista quer dizer que a coleta não encontrou esse dado no Google Maps,
+    não que a empresa não tenha.</p>
     <p>Os dados ficam só neste arquivo, no seu computador. Esta página não envia nada para a internet.</p>
   </footer>
 </div>
@@ -172,7 +185,7 @@ a.link{color:var(--marca);text-decoration:underline;text-underline-offset:3px;wo
   "use strict";
   var LINHAS = JSON.parse(document.getElementById("dados").textContent);
   var POR_PAGINA = 100;
-  var estado = { busca: "", filtros: {}, ordem: "nome", visiveis: POR_PAGINA };
+  var estado = { busca: "", filtros: {}, ordem: "nome", categoria: "", visiveis: POR_PAGINA };
   var RE_ZAP = /^https:\/\/wa\.me\/55\d{10,11}$/;
   var RE_HTTP = /^https?:\/\/[^\s]+$/i;
   var RE_EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/;
@@ -194,6 +207,7 @@ a.link{color:var(--marca);text-decoration:underline;text-underline-offset:3px;wo
 
   function passa(l) {
     if (estado.busca && l._busca.indexOf(estado.busca) === -1) return false;
+    if (estado.categoria && l.categoria !== estado.categoria) return false;
     var f = estado.filtros;
     if (f.telefone && !l.telefone) return false;
     if (f.zap && !temZap(l)) return false;
@@ -274,8 +288,43 @@ a.link{color:var(--marca);text-decoration:underline;text-underline-offset:3px;wo
   }
 
   var atuais = [];
+  // Cartões de qualidade dos contatos (da lista que está na tela).
+  function desenharResumo(lista) {
+    var caixa = document.getElementById("resumo"), n = lista.length;
+    function conta(f) { return lista.filter(f).length; }
+    var itens = [
+      ["Empresas na tela", String(n), ""],
+      ["Com WhatsApp (celular)", conta(temZap), "zap"],
+      ["Com telefone", conta(function (l) { return !!l.telefone; }), ""],
+      ["Com site", conta(function (l) { return !!l.site; }), ""],
+      ["Com e-mail", conta(function (l) { return !!l.email; }), ""]
+    ];
+    caixa.textContent = "";
+    itens.forEach(function (it, i) {
+      var c = el("div", "cartao");
+      var valor = i === 0 ? it[1] : it[1] + (n ? " (" + Math.round(100 * it[1] / n) + "%)" : "");
+      c.appendChild(el("span", "valor", valor));
+      c.appendChild(el("span", "legenda", it[0]));
+      caixa.appendChild(c);
+    });
+  }
+
+  // Lista de categorias, da mais comum para a menos comum.
+  (function () {
+    var cont = {};
+    LINHAS.forEach(function (l) { if (l.categoria) cont[l.categoria] = (cont[l.categoria] || 0) + 1; });
+    var sel = document.getElementById("categoria");
+    Object.keys(cont).sort(function (a, b) { return (cont[b] - cont[a]) || a.localeCompare(b, "pt-BR"); })
+      .forEach(function (c) {
+        var o = document.createElement("option");
+        o.value = c; o.textContent = c + " (" + cont[c] + ")";
+        sel.appendChild(o);
+      });
+  })();
+
   function atualizar() {
     atuais = LINHAS.filter(passa).sort(comparar);
+    desenharResumo(atuais);
     corpo.textContent = "";
     var frag = document.createDocumentFragment();
     atuais.slice(0, estado.visiveis).forEach(function (l) { frag.appendChild(criarLinha(l)); });
@@ -293,10 +342,11 @@ a.link{color:var(--marca);text-decoration:underline;text-underline-offset:3px;wo
       tr.appendChild(td); corpo.appendChild(tr);
     }
   }
-  function reiniciar() { estado.visiveis = POR_PAGINA; atualizar(); }
+  function reiniciar() { estado.visiveis = POR_PAGINA; document.getElementById("status-copia").textContent = ""; atualizar(); }
 
   document.getElementById("busca").addEventListener("input", function (e) { estado.busca = norm(e.target.value.trim()); reiniciar(); });
   document.getElementById("ordem").addEventListener("change", function (e) { estado.ordem = e.target.value; reiniciar(); });
+  document.getElementById("categoria").addEventListener("change", function (e) { estado.categoria = e.target.value; reiniciar(); });
   Array.prototype.forEach.call(document.querySelectorAll("[data-filtro]"), function (c) {
     c.addEventListener("change", function () { estado.filtros[c.getAttribute("data-filtro")] = c.checked; reiniciar(); });
   });
@@ -308,7 +358,9 @@ a.link{color:var(--marca);text-decoration:underline;text-underline-offset:3px;wo
   });
   botaoMais.addEventListener("click", function () { estado.visiveis += POR_PAGINA; atualizar(); });
   document.getElementById("limpar").addEventListener("click", function () {
-    estado = { busca: "", filtros: {}, ordem: "nome", visiveis: POR_PAGINA };
+    estado = { busca: "", filtros: {}, ordem: "nome", categoria: "", visiveis: POR_PAGINA };
+    document.getElementById("categoria").value = "";
+    document.getElementById("status-copia").textContent = "";
     document.getElementById("busca").value = ""; document.getElementById("ordem").value = "nome";
     Array.prototype.forEach.call(document.querySelectorAll("[data-filtro]"), function (c) { c.checked = false; });
     atualizar();
@@ -337,6 +389,32 @@ a.link{color:var(--marca);text-decoration:underline;text-underline-offset:3px;wo
     a.href = URL.createObjectURL(blob); a.download = "leads-filtrados.csv";
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+
+  // Copiar o que está na tela para colar no Google Sheets (separado por tabulação).
+  function celulaTsv(v) {
+    v = String(v == null ? "" : v).replace(/[\t\r\n]+/g, " ");
+    return /^[=+\-@]/.test(v) ? "'" + v : v;     // evita fórmula na planilha
+  }
+  document.getElementById("copiar").addEventListener("click", function () {
+    var cols = ["nome", "categoria", "endereco", "telefone", "tipo_telefone", "whatsapp", "site", "email",
+                "nota", "avaliacoes", "link_maps"];
+    var texto = [cols.join("\t")].concat(atuais.map(function (l) {
+      return cols.map(function (c) { return celulaTsv(c === "nota" ? String(l[c] || "").replace(".", ",") : l[c]); }).join("\t");
+    })).join("\n");
+    var status = document.getElementById("status-copia");
+    function ok() { status.textContent = atuais.length + " empresas copiadas. Abra o Google Sheets e cole (Ctrl+V)."; }
+    function reserva() {
+      var area = document.createElement("textarea");
+      area.value = texto; area.setAttribute("readonly", ""); area.style.position = "fixed"; area.style.opacity = "0";
+      document.body.appendChild(area); area.select();
+      var deu = false;
+      try { deu = document.execCommand("copy"); } catch (e) { deu = false; }
+      document.body.removeChild(area);
+      if (deu) ok(); else status.textContent = "Não consegui copiar. Use o botão de baixar e abra o arquivo no Sheets.";
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok, reserva);
+    else reserva();
   });
 
   atualizar();
