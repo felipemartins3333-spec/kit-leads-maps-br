@@ -485,3 +485,21 @@ e `testar`. Não precisou instalar nada no sistema nem pedir confirmação.
 - Correções vistas nos prints: regras dos cartões compactos que eu tinha apagado sem querer; barra de
   filtros cobrindo o mapa; ícone "ver todas" parecido com "tela cheia"; chave do e-mail desalinhada
   (`.passo label` anulava o flex); texto "funciona sem internet" ajustado.
+
+## Rodada 15 (2026-11-21) — tela dentro do Claude Desktop (painel Browser)
+
+- Referência do Felipe: vídeo de outro criador com a tela do sistema aberta DENTRO do Claude Desktop,
+  ao lado da conversa. Fonte oficial lida: code.claude.com/docs/en/desktop ("Preview your app",
+  "Configure preview servers"): o Desktop inicia servidores descritos em `.claude/launch.json`
+  (`runtimeExecutable`, `runtimeArgs`, `port`, `cwd`, `autoPort`), abre `http://localhost:<port>` no painel
+  Browser; com `autoPort`, passa a porta na variável `PORT` e só reescreve `--port`/`-p` nos argumentos.
+- Feito: `.claude/launch.json` (`kit-de-leads`, `python3 -I scripts/kit.py abrir --sem-navegador --sem-chave`,
+  porta 8765, `autoPort: true`); a tela lê `PORT`; modo `--sem-chave` (o painel não abre link com chave que
+  muda a cada vez). **Segurança mantida:** só 127.0.0.1, Host só localhost (no Codespace o domínio encaminhado
+  NÃO é aceito nesse modo), POST exige `X-Kit-Chave` que só a página conhece; risco aceito: outro programa
+  local poderia ler a tela (o padrão fora do Claude continua com chave).
+- A tela acompanha buscas feitas pelo chat: `kit.py buscar` grava `andamento.json` durante a coleta
+  (removido no `finally`); a tela consulta a cada 5 s, mostra "O Claude está buscando…" e troca o mapa
+  para a busca nova. Sobras com mais de 3 h são ignoradas.
+- Verificado: 92 testes (3 novos do modo Claude Desktop) e simulação no Chromium. **Não verificado:** o
+  painel Browser do Claude Desktop de verdade (precisa do app; o Felipe testa no Codespace).

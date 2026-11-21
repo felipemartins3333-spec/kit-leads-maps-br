@@ -1,0 +1,15 @@
+{
+  // Tela do kit no painel Browser do Claude Desktop (preview).
+  // No Windows, troque "python3" por "py". A porta chega pela variável PORT (o kit lê sozinho).
+  "version": "0.0.1",
+  "autoVerify": false,
+  "configurations": [
+    {
+      "name": "kit-de-leads",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-I", "scripts/kit.py", "abrir", "--sem-navegador", "--sem-chave"],
+      "port": 8765,
+      "autoPort": true
+    }
+  ]
+}

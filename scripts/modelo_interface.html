@@ -250,7 +250,7 @@ input[type=text]:hover{border-color:var(--suave)}
     var fim = document.getElementById("fim"); fim.textContent = "";
     var st = document.getElementById("status-texto"), pulso = document.querySelector(".pulso");
     if (a.rodando) {
-      st.textContent = "Buscando no Google Maps…";
+      st.textContent = a.origem === "claude" ? "O Claude está buscando no Google Maps…" : "Buscando no Google Maps…";
       pulso.classList.remove("oculto"); document.getElementById("barra").classList.remove("oculto");
       met.appendChild(metrica(tempo(a.segundos), "tempo"));
       met.appendChild(metrica(a.empresas_ate_agora ? a.empresas_ate_agora : "—", a.empresas_ate_agora ? "empresas até agora" : "as empresas aparecem no fim"));
@@ -277,7 +277,7 @@ input[type=text]:hover{border-color:var(--suave)}
   }
 
   // ---------------- mapa da tela ----------------
-  var mapa = null, marcadores = [], pastaNoMapa = null, ultimaPronta = null;
+  var mapa = null, marcadores = [], pastaNoMapa = null, ultimaPronta = null, maisRecente = null;
   var avisoMapa = document.getElementById("mapa-aviso");
   function avisar(t) { avisoMapa.textContent = t; avisoMapa.hidden = !t; }
   function iniciarMapa() {
@@ -332,11 +332,15 @@ input[type=text]:hover{border-color:var(--suave)}
       desenharBuscas(d.buscas);
       var pronta = d.atual && !d.atual.rodando && d.atual.resultado ? d.atual.pasta : null;
       if (pronta && pronta !== ultimaPronta) { ultimaPronta = pronta; if (pronta !== pastaNoMapa) mostrarNoMapa(pronta, d.atual.consultas[0] || pronta); }
-      else if (!pastaNoMapa && d.buscas.length) mostrarNoMapa(d.buscas[0].pasta, d.buscas[0].consultas[0] || d.buscas[0].pasta);
+      else if (d.buscas.length && (!pastaNoMapa || (maisRecente && d.buscas[0].pasta !== maisRecente))) {
+        // primeira vez, ou apareceu uma busca nova (por exemplo, feita pelo Claude no chat)
+        mostrarNoMapa(d.buscas[0].pasta, d.buscas[0].consultas[0] || d.buscas[0].pasta);
+      }
+      if (d.buscas.length) maisRecente = d.buscas[0].pasta;
       var rodando = d.atual && d.atual.rodando;
       document.getElementById("enviar").disabled = !!rodando;
       clearTimeout(timer);
-      if (rodando) timer = setTimeout(atualizar, 2000);
+      timer = setTimeout(atualizar, rodando ? 2000 : 5000);   // acompanha também o que o Claude faz no chat
     }).catch(function () {
       document.getElementById("erro").textContent = "A tela perdeu contato com o kit. O terminal ainda está aberto?";
     });

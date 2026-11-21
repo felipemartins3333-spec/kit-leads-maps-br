@@ -178,5 +178,60 @@ class TesteServidor(unittest.TestCase):
             self.assertEqual(interface.link_publico(8765, "k"), "http://127.0.0.1:8765/?t=k")
 
 
+class TesteModoClaudeDesktop(unittest.TestCase):
+    """Modo do painel Browser do Claude Desktop: sem chave no link, mas ainda protegido."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.resultados = Path(self.tmp.name) / "resultados"
+        self.resultados.mkdir()
+        self.chamadas = []
+        self.estado = interface.Estado(self.resultados, lambda cmd, log: (self.chamadas.append(cmd), ProcFalso())[1])
+        self.srv = interface.criar_servidor(self.estado, TOKEN, porta=0, exigir_chave=False)
+        self.porta = self.srv.server_address[1]
+        threading.Thread(target=self.srv.serve_forever, daemon=True).start()
+
+    def tearDown(self):
+        self.srv.shutdown()
+        self.srv.server_close()
+        self.tmp.cleanup()
+
+    def pedir(self, metodo, caminho, corpo=None, chave=False, host=None):
+        c = http.client.HTTPConnection("127.0.0.1", self.porta, timeout=5)
+        h = {"Host": host or f"localhost:{self.porta}"}
+        if chave:
+            h["X-Kit-Chave"] = TOKEN
+        dados = json.dumps(corpo).encode() if corpo is not None else None
+        if dados:
+            h["Content-Type"] = "application/json"
+        c.request(metodo, caminho, body=dados, headers=h)
+        r = c.getresponse()
+        return r.status, r.read().decode("utf-8", "replace")
+
+    def test_abre_sem_chave_no_link(self):
+        self.assertEqual(self.pedir("GET", "/")[0], 200)
+        self.assertEqual(self.pedir("GET", "/api/estado")[0], 200)
+
+    def test_continua_protegido(self):
+        self.assertEqual(self.pedir("GET", "/", host="site-malicioso.com")[0], 403)
+        self.assertEqual(self.pedir("POST", "/api/buscar", {"segmentos": "a", "cidade": "X BA"})[0], 403)
+        self.assertEqual(self.chamadas, [])
+        self.assertEqual(self.pedir("POST", "/api/buscar", {"segmentos": "a", "cidade": "X BA"}, chave=True)[0], 200)
+
+    def test_mostra_busca_feita_pelo_claude(self):
+        import time as _t
+        pasta = self.resultados / "busca-20261121-120000"
+        pasta.mkdir()
+        (pasta / "andamento.json").write_text(json.dumps({"inicio": _t.time() - 30, "consultas": ["pilates em Curitiba PR"]}),
+                                             encoding="utf-8")
+        atual = json.loads(self.pedir("GET", "/api/estado")[1])["atual"]
+        self.assertTrue(atual["rodando"])
+        self.assertEqual(atual["origem"], "claude")
+        self.assertEqual(atual["consultas"], ["pilates em Curitiba PR"])
+        (pasta / "andamento.json").write_text(json.dumps({"inicio": _t.time() - 5 * 3600, "consultas": []}),
+                                             encoding="utf-8")
+        self.assertIsNone(json.loads(self.pedir("GET", "/api/estado")[1])["atual"], "sobra antiga é ignorada")
+
+
 if __name__ == "__main__":
     unittest.main()

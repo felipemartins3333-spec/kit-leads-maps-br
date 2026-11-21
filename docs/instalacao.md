@@ -191,8 +191,10 @@ Deixe o kit funcionando neste computador, do começo ao fim:
 Quando terminar, me diga:
 - o que foi instalado (só o que você instalou de verdade);
 - onde ficou a pasta do kit e como atualizá-lo no futuro ("kit.py atualizar");
-- as duas formas de usar: a tela no navegador (rode "kit.py abrir" e me mostre o link)
-  e pedir para você em português (o comando /leads-buscar);
+- as duas formas de usar: a tela no navegador e pedir para você em português (/leads-buscar).
+  Se você for o Claude Desktop, abra a tela do kit no painel Browser ao lado da conversa
+  (configuração "kit-de-leads" do .claude/launch.json; veja o CLAUDE.md) e deixe aberta.
+  Fora do Desktop, rode "kit.py abrir" e me mostre o link;
 - onde abrir o resultado de uma busca: o relatório HTML (duplo clique) e a planilha para Excel;
 - os números do teste, sem nomes, telefones, e-mails ou sites de empresas.
 

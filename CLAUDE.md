@@ -47,6 +47,18 @@ Siga `docs/instalacao.md` (ou o comando `/leads-instalar`). O caminho é sempre:
 10. **Versão do motor fixa.** O kit usa uma versão testada do motor (`VERSAO_MOTOR` no `kit.py`). Não troque
     para "latest" nem para outra versão; para receber versões novas, use `kit.py atualizar`.
 
+## Tela dentro do Claude Desktop (painel Browser)
+
+Se você é o Claude Desktop (sessão local), mostre a tela do kit **no painel Browser, ao lado da conversa**,
+e deixe aberta: ela acompanha ao vivo as buscas que você fizer pelo chat e troca o mapa para a busca nova.
+
+- O servidor está em `.claude/launch.json` (configuração `kit-de-leads`): inicie-o pela ferramenta de
+  preview do Desktop. Ele roda `kit.py abrir --sem-chave` (só localhost; o POST continua protegido).
+- Se a conversa foi aberta numa pasta acima do kit (o kit foi clonado dentro dela), crie
+  `.claude/launch.json` na pasta da conversa com a mesma configuração e `"cwd": "kit-leads-maps-br"`.
+- No Windows, use `"runtimeExecutable": "py"` em vez de `"python3"`.
+- Fora do Claude Desktop, use `kit.py abrir` (link com chave).
+
 ## Comandos úteis
 
 **Duas formas de usar:** (1) a **tela no navegador**: `python3 scripts/kit.py abrir` mostra um link; quem usa

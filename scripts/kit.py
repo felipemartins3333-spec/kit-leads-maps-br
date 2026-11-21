@@ -29,6 +29,7 @@ Só usa a biblioteca padrão do Python.
 """
 import argparse
 import csv
+import json
 import os
 import platform
 import re
@@ -599,7 +600,16 @@ def cmd_buscar(a):
         return 1
     if not garantir_imagem(info):
         return 1
-    m = rodar_motor("busca", arq_consultas, pasta, "bruto.csv", a.idioma, a.email, a.profundidade)
+    # A tela (kit.py abrir) mostra o andamento das buscas feitas pelo Claude/terminal por este arquivo.
+    marcador = pasta / "andamento.json"
+    marcador.write_text(json.dumps({"inicio": time.time(), "consultas": consultas}, ensure_ascii=False), encoding="utf-8")
+    try:
+        m = rodar_motor("busca", arq_consultas, pasta, "bruto.csv", a.idioma, a.email, a.profundidade)
+    finally:
+        try:
+            marcador.unlink()
+        except OSError:
+            pass
     if m["linhas_csv"] == 0:
         explicar_zero_linhas(pasta)
         return 1
@@ -671,7 +681,8 @@ def cmd_abrir(a):
     if info["faltas"]:
         dizer("[aviso] Falta resolver: " + ", ".join(info["faltas"]) + f". A tela abre, mas a busca só funciona depois. "
               f"Rode: {comando_python()} scripts/kit.py verificar")
-    args = ["--porta", str(a.porta)] + (["--sem-navegador"] if a.sem_navegador else [])
+    args = (["--porta", str(a.porta)] if a.porta else []) + (["--sem-navegador"] if a.sem_navegador else []) \
+        + (["--sem-chave"] if a.sem_chave else [])
     return interface.main(args, PASTA_RESULTADOS)
 
 
@@ -836,8 +847,9 @@ def main(argv=None):
     b.add_argument("--so-categorias", nargs="+", default=[], help="manter só estas categorias")
     b.add_argument("--mostrar-comando", action="store_true", help="só mostra o comando, não executa")
     ab = sub.add_parser("abrir", help="abre a tela de busca no navegador")
-    ab.add_argument("--porta", type=int, default=8765)
+    ab.add_argument("--porta", type=int, default=None, help="porta (padrão: variável PORT ou 8765)")
     ab.add_argument("--sem-navegador", action="store_true", help="só mostra o link, não abre o navegador")
+    ab.add_argument("--sem-chave", action="store_true", help="modo do painel Browser do Claude Desktop (localhost, sem chave)")
     r = sub.add_parser("refinar", help="refaz a lista de uma busca sem coletar de novo (categorias, quantidade)")
     r.add_argument("--pasta", required=True, help="pasta da busca, ex.: resultados/busca-20261119-101500")
     r.add_argument("--quantidade", type=int, help="quantas empresas na lista final")

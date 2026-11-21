@@ -130,9 +130,38 @@ class Estado:
         linhas = [_ANSI.sub("", l).strip() for l in texto.splitlines() if l.strip()]
         return linhas[-n:]
 
+    def _busca_externa(self):
+        """Busca rodando fora da tela (pelo Claude ou pelo terminal): o kit.py grava andamento.json."""
+        melhor = None
+        for arq in self.pasta_resultados.glob("busca-*/andamento.json"):
+            try:
+                dados = json.loads(arq.read_text(encoding="utf-8"))
+                inicio = float(dados.get("inicio", 0))
+            except (OSError, ValueError, json.JSONDecodeError):
+                continue
+            if time.time() - inicio > 3 * 3600:      # sobra de busca interrompida: ignora
+                continue
+            if not melhor or inicio > melhor[1]:
+                melhor = (arq.parent, inicio, dados.get("consultas") or [])
+        if not melhor:
+            return None
+        pasta, inicio, consultas = melhor
+        try:
+            linhas = len(resumo_teste.ler_linhas(pasta / "bruto.csv"))
+        except Exception:
+            linhas = None
+        return {"pasta": pasta.name, "rodando": True, "segundos": int(time.time() - inicio),
+                "empresas_ate_agora": linhas, "consultas": [str(c) for c in consultas][:30], "avisos": [],
+                "origem": "claude"}
+
     def status(self):
         t = self.trabalho
         atual = None
+        if not (t and t["proc"].poll() is None):
+            externa = self._busca_externa()
+            if externa:
+                buscas = [_busca_json(b) for b in painel.coletar(self.pasta_resultados)]
+                return {"atual": externa, "buscas": buscas}
         if t:
             rodando = t["proc"].poll() is None
             pasta = t["pasta"]
@@ -203,7 +232,10 @@ CSP_APP = ("default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-in
            "form-action 'none'; base-uri 'none'; frame-ancestors 'none'")
 
 
-def criar_servidor(estado, token, porta=PORTA_PADRAO, hosts_extras=()):
+def criar_servidor(estado, token, porta=PORTA_PADRAO, hosts_extras=(), exigir_chave=True):
+    """exigir_chave=False: modo do painel Browser do Claude Desktop (abre http://localhost:PORTA sem chave).
+    Continua: só 127.0.0.1, só Host localhost, e o POST exige o cabeçalho X-Kit-Chave que só a própria
+    página conhece (um site de fora não consegue ler a página nem mandar esse cabeçalho)."""
     class Atendente(http.server.BaseHTTPRequestHandler):
         server_version = "KitLeads"
         sys_version = ""
@@ -227,6 +259,8 @@ def criar_servidor(estado, token, porta=PORTA_PADRAO, hosts_extras=()):
             return ""
 
         def _autorizado(self):
+            if not exigir_chave:
+                return True
             return secrets.compare_digest(self._cookie(), token)
 
         def _responder(self, codigo, corpo, tipo="text/html; charset=utf-8", extras=None):
@@ -333,20 +367,26 @@ def link_publico(porta, token):
 
 def main(argv=None, pasta_resultados=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--porta", type=int, default=PORTA_PADRAO)
+    ap.add_argument("--porta", type=int, default=None, help="porta (padrão: variável PORT ou 8765)")
     ap.add_argument("--sem-navegador", action="store_true", help="não abre o navegador sozinho")
+    ap.add_argument("--sem-chave", action="store_true",
+                    help="para o painel Browser do Claude Desktop: abre em http://localhost:PORTA sem chave no link")
     a = ap.parse_args(argv)
+    porta_pedida = a.porta if a.porta is not None else int(os.environ.get("PORT") or PORTA_PADRAO)
     token = secrets.token_urlsafe(24)
     no_codespace = os.environ.get("CODESPACES") == "true"
-    extras = (".app.github.dev",) if no_codespace else ()
+    extras = (".app.github.dev",) if (no_codespace and not a.sem_chave) else ()
     estado = Estado(pasta_resultados or (RAIZ / "resultados"))
-    servidor = criar_servidor(estado, token, a.porta, extras)
+    servidor = criar_servidor(estado, token, porta_pedida, extras, exigir_chave=not a.sem_chave)
     porta = servidor.server_address[1]
-    link = link_publico(porta, token)
+    link = f"http://localhost:{porta}/" if a.sem_chave else link_publico(porta, token)
     print("\n  KIT DE LEADS · TELA DE BUSCA", flush=True)
     print("  " + "─" * 28, flush=True)
-    print(f"  Abra este link no navegador (ele tem a sua chave de acesso; não compartilhe):\n\n  {link}\n", flush=True)
-    if no_codespace:
+    if a.sem_chave:
+        print(f"  Tela no painel do Claude Desktop (só este computador acessa):\n\n  {link}\n", flush=True)
+    else:
+        print(f"  Abra este link no navegador (ele tem a sua chave de acesso; não compartilhe):\n\n  {link}\n", flush=True)
+    if no_codespace and not a.sem_chave:
         print("  No Codespace: se o link não abrir, vá na aba Portas, clique no globo da porta "
               f"{porta} e acrescente ?t={token} no fim do endereço.", flush=True)
     print("  Para fechar a tela: Ctrl+C neste terminal.\n", flush=True)
