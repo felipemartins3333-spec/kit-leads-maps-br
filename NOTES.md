@@ -503,3 +503,25 @@ e `testar`. Não precisou instalar nada no sistema nem pedir confirmação.
   para a busca nova. Sobras com mais de 3 h são ignoradas.
 - Verificado: 92 testes (3 novos do modo Claude Desktop) e simulação no Chromium. **Não verificado:** o
   painel Browser do Claude Desktop de verdade (precisa do app; o Felipe testa no Codespace).
+
+## Rodada 16 (2026-11-21) — o que o motor tem e o kit não tinha
+
+- Pergunta do Felipe: das coisas do motor original que o kit não tinha, quais o kit do Victor tem? Conferido
+  nos arquivos do Victor (grep, sem copiar código): ele TEM proxies, modo rápido (fast_mode), ponto + raio
+  (lat/lon, radius, zoom, com geocodificação pelo Nominatim), limite de tempo (max_time), redes sociais
+  (Instagram/Facebook/LinkedIn lidos dos sites) e apagar busca. NÃO tem: avaliações completas
+  (extra_reviews), retomar (resume), banco Postgres, grade (grid/bbox).
+- Fonte oficial das flags: README do motor na tag v1.18.2 (`-fast-mode` "Quick mode with reduced data",
+  até 21 resultados por consulta ordenados pela distância, beta e "may experience blocking"; `-geo`
+  "lat,lon"; `-radius` em metros, padrão 10000; `-zoom` padrão 15; `-proxies-file` um proxy por linha).
+- Feito (código próprio): `buscar --tempo-maximo/--ponto/--raio/--modo-rapido/--proxies-arquivo/--redes-sociais`,
+  `refinar --redes-sociais`, `apagar`; tela com "Opções avançadas" (ponto escolhido clicando no mapa, com
+  círculo do raio; **sem geocodificação**, para não depender de serviço externo com política de uso) e
+  botão Apagar com confirmação; relatório e planilhas com colunas instagram/facebook/linkedin.
+- `-geo=LAT,LON` com "=" (latitude negativa não vira outra flag); `--ponto -12.9,...` funciona no kit.py.
+- Redes sociais: só a página inicial, só http/https, só IP público (também nos redirecionamentos), 8 s,
+  até ~800 KB, 6 conexões; cache em `redes.json`. Proxies: arquivo montado só para leitura (senha fora do
+  comando e do log); o kit não indica fornecedor.
+- Verificado: 105 testes; tela no Chromium (ponto, raio, modo rápido habilita só com ponto, Apagar).
+  **Não verificado:** nenhuma dessas opções numa coleta real (esta sessão não acessa o Google), nem a
+  procura de redes em sites reais (a rede desta sessão é limitada).

@@ -160,6 +160,30 @@ def gerar_html(buscas, comando_python="python3"):
 """
 
 
+NOME_BUSCA = re.compile(r"^busca-\d{8}-\d{6}(-\d+)?$")
+
+
+def apagar_busca(pasta_resultados, nome):
+    """Apaga UMA pasta de busca dentro de resultados/. Devolve (ok, mensagem).
+    Só aceita nomes 'busca-AAAAMMDD-HHMMSS' e nunca apaga uma busca em andamento."""
+    import shutil
+    nome = Path(str(nome or "")).name
+    if not NOME_BUSCA.match(nome):
+        return False, "Nome de busca inválido (esperado: busca-AAAAMMDD-HHMMSS)."
+    base = Path(pasta_resultados).resolve()
+    alvo = (base / nome)
+    if alvo.is_symlink() or not alvo.is_dir() or alvo.resolve().parent != base:
+        return False, "Busca não encontrada."
+    if (alvo / "andamento.json").exists():
+        return False, "Essa busca ainda está rodando. Espere terminar para apagar."
+    try:
+        shutil.rmtree(alvo)
+    except OSError as e:
+        return False, f"Não consegui apagar ({e.strerror or e}). Feche a planilha/relatório dessa busca e tente de novo."
+    gerar_painel(base)
+    return True, f"Busca {nome} apagada."
+
+
 def gerar_painel(pasta_resultados, comando_python="python3"):
     pasta_resultados = Path(pasta_resultados)
     pasta_resultados.mkdir(parents=True, exist_ok=True)

@@ -12,7 +12,12 @@ o objetivo é uma lista **útil para prospecção**, não a maior lista possíve
    - **cidade com UF** (ex.: "Curitiba PR"). Se a cidade tiver nome comum a vários estados e faltar a UF,
      pergunte. Se faltar segmento ou cidade, pergunte só isso;
    - **quantidade** desejada, se a pessoa disser ("quero 60"). Se não disser, não invente: use o que vier;
-   - se quer **e-mail** (`--email`: visita o site de cada empresa, deixa a busca mais lenta).
+   - se quer **e-mail** (`--email`: visita o site de cada empresa, deixa a busca mais lenta);
+   - se quer **Instagram/Facebook/LinkedIn** (`--redes-sociais`: abre só a página inicial do site de cada empresa);
+   - **opções avançadas, só se a pessoa pedir:** em volta de um ponto (`--ponto LAT,LON --raio KM`), modo rápido
+     (`--modo-rapido`, precisa de `--ponto`; até 21 por consulta, menos dados, beta), tempo máximo
+     (`--tempo-maximo N` minutos), proxies (`--proxies-arquivo ARQ`, só com arquivo que a pessoa forneceu).
+     Veja a tabela em `docs/instalacao.md`.
    Se o pedido estiver vazio, pergunte: "Qual segmento, em qual cidade, e mais ou menos quantas empresas?".
 
 2. **Montar a estratégia da busca.** O Google Maps mostra um número limitado de empresas por busca.

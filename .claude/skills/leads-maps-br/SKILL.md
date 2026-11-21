@@ -25,6 +25,8 @@ português simples, um passo por vez. As regras completas estão no `CLAUDE.md` 
 - `python3 scripts/kit.py buscar --segmentos "..." --cidades "Cidade UF" [--email] [--profundidade N] [--ddd-padrao NN]`
 - `python3 scripts/kit.py buscar --consultas arquivo.txt` (uma consulta por linha)
 - `--quantidade N` (as N de contato mais completo) · `python3 scripts/kit.py refinar --pasta resultados/busca-... --excluir-categorias "..."` (sem coletar de novo)
+- `--redes-sociais` (Instagram/Facebook/LinkedIn do site) · `python3 scripts/kit.py apagar --pasta resultados/busca-...`
+- Avançado, só se pedirem: `--tempo-maximo N`, `--ponto LAT,LON --raio KM`, `--modo-rapido`, `--proxies-arquivo ARQ` (ver `docs/instalacao.md`)
 - `python3 scripts/kit.py painel` (todas as buscas em `resultados/painel.html`)
 - `python3 scripts/kit.py atualizar` (kit + motor) · `python3 scripts/kit.py limpar` (pede confirmação)
 - No Windows: `py scripts\kit.py ...`

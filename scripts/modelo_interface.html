@@ -28,7 +28,7 @@ input[type=text]:hover{border-color:var(--suave)}
 .segmentos span{display:inline-block;min-width:64px;text-align:center;padding:9px 14px;border-radius:12px;border:1px solid var(--borda-campo);background:var(--papel)}
 .segmentos input:checked+span{background:var(--marca);border-color:var(--marca);color:var(--marca-texto);font-weight:600}
 .segmentos input:focus-visible+span{outline:3px solid var(--foco);outline-offset:2px}
-.passo .chave{position:relative;display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:600;margin:3px 0 0}
+.passo .chave,.avancado .chave{position:relative;display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:600;margin:3px 0 0}
 .chave input{position:absolute;opacity:0;width:1px;height:1px}
 .trilho{position:relative;display:inline-block;flex:0 0 auto;width:44px;height:26px;border-radius:99px;background:var(--trilho);border:1px solid var(--borda-campo);transition:background .15s}
 .trilho::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:99px;background:var(--papel);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
@@ -56,13 +56,27 @@ input[type=text]:hover{border-color:var(--suave)}
 .lista-consultas li{padding:3px 10px;border-radius:99px;border:1px solid var(--linha);background:var(--papel-2);font-size:.82rem;color:var(--suave)}
 .mensagens{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--papel-2);border:1px solid var(--linha);font:500 .82rem/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;color:var(--suave)}
 .buscas{display:grid;gap:10px;margin-top:14px}
-.busca{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;padding:14px;border:1px solid var(--linha);border-radius:16px;background:var(--papel-2)}
+.busca{display:grid;grid-template-columns:minmax(0,1fr);gap:10px 14px;align-items:center;padding:14px;border:1px solid var(--linha);border-radius:16px;background:var(--papel-2)}
 .busca h3{font:600 1rem/1.3 var(--serifa);margin:0}
 .busca .meta{color:var(--suave);font-size:.82rem}
 .busca .nums{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.86rem;color:var(--suave)}
 .busca .nums b{color:var(--tinta);font-variant-numeric:tabular-nums}
-.busca .botoes{justify-content:flex-end}
+.busca .botoes{justify-content:flex-start;flex-wrap:wrap;gap:8px}
+.busca .botao.apagar{margin-left:auto}
+.passo small+.chave{margin-top:14px}
 .busca .botao{min-height:36px;padding:7px 12px;font-size:.88rem}
+.busca .botao.apagar{color:var(--suave)}
+.busca .botao.apagar:hover{color:#B3261E;border-color:#B3261E;background:transparent}
+.busca .botao.apagar.confirmar{color:#fff;background:#B3261E;border-color:#B3261E}
+.avancado{border:1px solid var(--linha);border-radius:14px;padding:0 14px}
+.avancado summary{cursor:pointer;font-weight:600;padding:12px 0;list-style-position:inside}
+.avancado[open] summary{border-bottom:1px solid var(--linha);margin-bottom:12px}
+.avancado-corpo{display:grid;gap:16px;padding-bottom:14px}
+.avancado .titulo{display:block;font-weight:600;margin:0 0 6px}
+.avancado small{display:block;color:var(--suave);font-size:.84rem;margin-top:6px}
+.avancado .segmentos{margin-top:8px}
+.chave input:disabled+.trilho{opacity:.45}
+.mapa-escolhendo #mapa canvas{cursor:crosshair}
 .vazio{color:var(--suave);font-size:.92rem}
 .oculto{display:none!important}
 /* mapa da tela */
@@ -134,7 +148,37 @@ input[type=text]:hover{border-color:var(--suave)}
         <div class="passo"><span class="num">5</span><div>
           <label class="chave"><input type="checkbox" id="email"><span class="trilho" aria-hidden="true"></span>Procurar e-mails nos sites</label>
           <small>Visita o site de cada empresa: no nosso teste, levou cerca de 2,4× mais tempo.</small>
+          <label class="chave"><input type="checkbox" id="redes"><span class="trilho" aria-hidden="true"></span>Procurar Instagram, Facebook e LinkedIn</label>
+          <small>Depois da coleta, o kit abre só a página inicial do site de cada empresa e procura os perfis.</small>
         </div></div>
+        <details class="avancado" id="avancado">
+          <summary>Opções avançadas</summary>
+          <div class="avancado-corpo">
+            <div>
+              <span class="titulo" id="t-tempo">Tempo máximo da coleta</span>
+              <div class="segmentos" role="radiogroup" aria-labelledby="t-tempo">
+                <label><input type="radio" name="tempo" value="10"><span>10 min</span></label>
+                <label><input type="radio" name="tempo" value="30" checked><span>30 min</span></label>
+                <label><input type="radio" name="tempo" value="60"><span>1 hora</span></label>
+              </div>
+              <small>Chegou no limite, o kit para e monta a lista com o que já veio.</small>
+            </div>
+            <div>
+              <label class="chave"><input type="checkbox" id="usar-ponto"><span class="trilho" aria-hidden="true"></span>Buscar em volta de um ponto do mapa</label>
+              <small id="ponto-texto">Ligue e clique no mapa para marcar o centro da busca.</small>
+              <div class="segmentos" role="radiogroup" aria-label="Raio em volta do ponto" id="raios" hidden>
+                <label><input type="radio" name="raio" value="1"><span>1 km</span></label>
+                <label><input type="radio" name="raio" value="3" checked><span>3 km</span></label>
+                <label><input type="radio" name="raio" value="5"><span>5 km</span></label>
+                <label><input type="radio" name="raio" value="10"><span>10 km</span></label>
+              </div>
+            </div>
+            <div>
+              <label class="chave"><input type="checkbox" id="rapido" disabled><span class="trilho" aria-hidden="true"></span>Modo rápido (beta do motor)</label>
+              <small>Precisa do ponto. Até 21 empresas por busca, as mais perto do ponto, com menos dados. O próprio motor avisa que pode ter mais bloqueio.</small>
+            </div>
+          </div>
+        </details>
         <div class="enviar">
           <button type="submit" class="botao principal" id="enviar">__ICONE_BUSCA__Buscar empresas</button>
           <p class="erro" id="erro" role="alert"></p>
@@ -227,6 +271,7 @@ input[type=text]:hover{border-color:var(--suave)}
       bt.appendChild(bm);
       if (b.relatorio) bt.appendChild(botao("Abrir", b.relatorio, true, "abrir"));
       if (b.planilha) bt.appendChild(botao("Planilha", b.planilha, false, "planilha", true));
+      bt.appendChild(botaoApagar(b));
       c.appendChild(bt);
       var nums = el("div", "nums");
       [["empresas", b.empresas, null], ["WhatsApp", b.zap, b.empresas], ["site", b.site, b.empresas], ["e-mail", b.email, b.empresas]]
@@ -276,6 +321,39 @@ input[type=text]:hover{border-color:var(--suave)}
     }
   }
 
+  // Apagar: o primeiro clique pede confirmação no próprio botão; o segundo (em até 5 s) apaga.
+  var confirmando = null;
+  function botaoApagar(b) {
+    var x = el("button", "botao apagar" + (confirmando === b.pasta ? " confirmar" : ""));
+    x.type = "button";
+    x.appendChild(icone("lixeira"));
+    x.appendChild(document.createTextNode(confirmando === b.pasta ? "Confirmar" : "Apagar"));
+    x.setAttribute("aria-label", confirmando === b.pasta ? "Confirmar: apagar esta busca" : "Apagar esta busca");
+    x.addEventListener("click", function () {
+      if (confirmando !== b.pasta) {
+        confirmando = b.pasta;
+        x.classList.add("confirmar"); x.lastChild.textContent = "Confirmar";
+        setTimeout(function () { if (confirmando === b.pasta) { confirmando = null; atualizar(); } }, 5000);
+        return;
+      }
+      confirmando = null; x.disabled = true;
+      fetch("/api/apagar", { method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-Kit-Chave": CHAVE }, body: JSON.stringify({ pasta: b.pasta }) })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          if (!res.ok) { document.getElementById("erro").textContent = res.d.erro || "Não deu para apagar."; }
+          if (res.ok && pastaNoMapa === b.pasta) {
+            marcadores.forEach(function (m) { m.remove(); }); marcadores = []; pastaNoMapa = null; maisRecente = null;
+            document.getElementById("mapa-n").textContent = "—";
+            document.getElementById("mapa-titulo").textContent = "Busca apagada";
+          }
+          atualizar();
+        })
+        .catch(function () { x.disabled = false; });
+    });
+    return x;
+  }
+
   // ---------------- mapa da tela ----------------
   var mapa = null, marcadores = [], pastaNoMapa = null, ultimaPronta = null, maisRecente = null;
   var avisoMapa = document.getElementById("mapa-aviso");
@@ -293,8 +371,58 @@ input[type=text]:hover{border-color:var(--suave)}
       if (avisado || mapa.isStyleLoaded()) return;
       avisado = true; avisar("Sem internet, o fundo do mapa não carrega.");
     });
-    mapa.on("load", function () { avisar(""); });
+    mapa.on("load", function () { avisar(""); desenharPonto(); });
+    mapa.on("click", function (e) {
+      if (!usarPonto.checked) return;
+      ponto = { lat: +e.lngLat.lat.toFixed(6), lon: +e.lngLat.lng.toFixed(6) };
+      desenharPonto();
+    });
   }
+
+  // ---------------- busca em volta de um ponto (opções avançadas) ----------------
+  var ponto = null, marcaPonto = null;
+  var usarPonto = document.getElementById("usar-ponto"), rapido = document.getElementById("rapido");
+  function raioKm() { var r = document.querySelector("input[name=raio]:checked"); return r ? +r.value : 3; }
+  function circulo(lat, lon, km) {
+    var pts = [], n = 64, dLat = km / 111.32, dLon = km / (111.32 * Math.cos(lat * Math.PI / 180));
+    for (var i = 0; i <= n; i++) { var a = 2 * Math.PI * i / n; pts.push([lon + dLon * Math.cos(a), lat + dLat * Math.sin(a)]); }
+    return { type: "Feature", geometry: { type: "Polygon", coordinates: [pts] }, properties: {} };
+  }
+  function desenharPonto() {
+    var txt = document.getElementById("ponto-texto");
+    document.getElementById("raios").hidden = !usarPonto.checked;
+    rapido.disabled = !(usarPonto.checked && ponto);
+    if (rapido.disabled) rapido.checked = false;
+    document.body.classList.toggle("mapa-escolhendo", usarPonto.checked);
+    if (!usarPonto.checked) txt.textContent = "Ligue e clique no mapa para marcar o centro da busca.";
+    else if (!ponto) txt.textContent = "Agora clique no mapa, no lugar que será o centro da busca.";
+    else txt.textContent = "Centro: " + String(ponto.lat).replace(".", ",") + " · " + String(ponto.lon).replace(".", ",") + " (clique de novo no mapa para mudar).";
+    if (!mapa) return;
+    var mostrar = usarPonto.checked && ponto;
+    if (mostrar && !marcaPonto) marcaPonto = new maplibregl.Marker({ color: "#0F6B62" });
+    if (marcaPonto) { if (mostrar) marcaPonto.setLngLat([ponto.lon, ponto.lat]).addTo(mapa); else marcaPonto.remove(); }
+    if (!mapa.isStyleLoaded()) return;
+    var dados = { type: "FeatureCollection", features: mostrar ? [circulo(ponto.lat, ponto.lon, raioKm())] : [] };
+    if (mapa.getSource("raio")) mapa.getSource("raio").setData(dados);
+    else {
+      mapa.addSource("raio", { type: "geojson", data: dados });
+      mapa.addLayer({ id: "raio-area", type: "fill", source: "raio", paint: { "fill-color": "#0F6B62", "fill-opacity": 0.1 } });
+      mapa.addLayer({ id: "raio-borda", type: "line", source: "raio", paint: { "line-color": "#0F6B62", "line-width": 2, "line-dasharray": [2, 2] } });
+    }
+  }
+  usarPonto.addEventListener("change", function () {
+    desenharPonto();
+    var caixa = document.querySelector(".mapa-cartao").getBoundingClientRect();
+    if (usarPonto.checked && (caixa.top < 0 || caixa.bottom > window.innerHeight))
+      document.querySelector(".mapa-cartao").scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("input[name=raio]"), function (r) {
+    r.addEventListener("change", function () {
+      desenharPonto();
+      if (ponto && mapa) { var c = circulo(ponto.lat, ponto.lon, raioKm()).geometry.coordinates[0], b = new maplibregl.LngLatBounds();
+        c.forEach(function (x) { b.extend(x); }); mapa.fitBounds(b, { padding: 40, duration: 500 }); }
+    });
+  });
   function mostrarNoMapa(pasta, titulo) {
     pastaNoMapa = pasta;
     Array.prototype.forEach.call(document.querySelectorAll(".busca"), function (b) { b.classList.remove("no-mapa"); });
@@ -355,8 +483,14 @@ input[type=text]:hover{border-color:var(--suave)}
       cidade: document.getElementById("cidade").value,
       bairros: document.getElementById("bairros").value,
       quantidade: qtd ? qtd.value : "60",
-      email: document.getElementById("email").checked
+      email: document.getElementById("email").checked,
+      redes: document.getElementById("redes").checked,
+      tempo: (document.querySelector("input[name=tempo]:checked") || { value: "30" }).value
     };
+    if (usarPonto.checked) {
+      if (!ponto) { erro.textContent = "Clique no mapa para marcar o centro da busca (ou desligue “Buscar em volta de um ponto”)."; return; }
+      corpo.ponto = ponto; corpo.raio = raioKm(); corpo.rapido = rapido.checked;
+    }
     var b = document.getElementById("enviar"); b.disabled = true;
     fetch("/api/buscar", { method: "POST", credentials: "same-origin",
       headers: { "Content-Type": "application/json", "X-Kit-Chave": CHAVE }, body: JSON.stringify(corpo) })

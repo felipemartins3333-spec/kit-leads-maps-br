@@ -46,6 +46,38 @@ class TesteComando(unittest.TestCase):
         self.assertEqual(cmd[cmd.index("--name") + 1], "kit-leads-1-x")
 
 
+    def test_opcoes_avancadas_do_motor(self):
+        with tempfile.TemporaryDirectory() as d:
+            px = Path(d) / "proxies.txt"
+            px.write_text("http://u:segredo@h:1\n", encoding="utf-8")
+            cmd = kit.montar_comando("/tmp/q.txt", "/tmp/out", "a.csv", opcoes={
+                "ponto": (-12.9714, -38.5014), "raio_m": 3000, "rapido": True, "proxies_arquivo": px})
+        motor = cmd[cmd.index(kit.IMAGEM) + 1:]
+        self.assertIn("-geo=-12.971400,-38.501400", motor)
+        self.assertEqual(motor[motor.index("-radius") + 1], "3000")
+        self.assertIn("-fast-mode", motor)
+        self.assertEqual(motor[motor.index("-proxies-file") + 1], "/proxies.txt")
+        self.assertFalse(any("segredo" in x for x in cmd), "senha do proxy não aparece no comando")
+        montagens = [cmd[i + 1] for i, x in enumerate(cmd) if x == "--mount"]
+        self.assertTrue(any("target=/proxies.txt" in m and m.endswith(",readonly") for m in montagens))
+
+    def test_ler_ponto(self):
+        self.assertEqual(kit.ler_ponto("-12.97, -38.5"), (-12.97, -38.5))
+        for ruim in ("", "-12.97", "a,b", "100,0", "1,2,3"):
+            with self.subTest(ponto=ruim):
+                with self.assertRaises(ValueError):
+                    kit.ler_ponto(ruim)
+
+    def test_buscar_valida_opcoes(self):
+        base = ["buscar", "--segmentos", "a", "--cidades", "X BA", "--mostrar-comando"]
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(kit.main(base + ["--pasta", d, "--modo-rapido"]), 2, "modo rápido sem ponto")
+            self.assertEqual(kit.main(base + ["--pasta", d, "--raio", "3"]), 2, "raio sem ponto")
+            self.assertEqual(kit.main(base + ["--pasta", d, "--tempo-maximo", "0"]), 2)
+            self.assertEqual(kit.main(base + ["--pasta", d, "--ponto", "-12.97,-38.5", "--raio", "3",
+                                              "--modo-rapido"]), 0, "latitude negativa logo depois de --ponto")
+
+
 class TesteErrosDocker(unittest.TestCase):
     def test_windows_desligado(self):
         msg = "error during connect: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified."
@@ -241,6 +273,34 @@ class TesteLimpar(unittest.TestCase):
         removidas = [c[3] for c in chamadas if c[:3] == ["docker", "image", "rm"]]
         self.assertEqual(removidas, [kit.IMAGEM_REPO + ":latest"])
         self.assertFalse(any(c[:3] == ["docker", "volume", "rm"] for c in chamadas), "--antigas não mexe no cache")
+
+
+class TesteApagar(unittest.TestCase):
+    def test_apagar_pede_confirmacao_e_so_pasta_de_busca(self):
+        import painel
+        with tempfile.TemporaryDirectory() as d:
+            res = Path(d)
+            (res / "busca-20261119-101500").mkdir()
+            (res / "outra").mkdir()
+            antigo = kit.PASTA_RESULTADOS
+            kit.PASTA_RESULTADOS = res
+            try:
+                import builtins
+                original = builtins.input
+                builtins.input = lambda *_: "não"
+                try:
+                    self.assertEqual(kit.main(["apagar", "--pasta", "resultados/busca-20261119-101500"]), 1)
+                finally:
+                    builtins.input = original
+                self.assertTrue((res / "busca-20261119-101500").exists())
+                self.assertEqual(kit.main(["apagar", "--pasta", "outra", "--sim"]), 1)
+                self.assertTrue((res / "outra").exists())
+                self.assertEqual(kit.main(["apagar", "--pasta", "busca-20261119-101500", "--sim"]), 0)
+                self.assertFalse((res / "busca-20261119-101500").exists())
+                self.assertTrue((res / "painel.html").exists(), "painel refeito sem a busca apagada")
+            finally:
+                kit.PASTA_RESULTADOS = antigo
+        self.assertFalse(painel.apagar_busca(d, "busca-20261119-101500")[0])
 
 
 class TestePainel(unittest.TestCase):

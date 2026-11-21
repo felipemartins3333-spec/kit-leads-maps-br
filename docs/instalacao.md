@@ -236,6 +236,23 @@ python3 scripts/kit.py buscar --segmentos "clínicas odontológicas" --cidades "
 - Mais resultados por consulta: `--profundidade 2` ou `3` (mais tempo e mais risco de bloqueio).
 - **Cidade grande?** O Google Maps mostra um número limitado de empresas por busca. Em vez de aumentar
   muito a profundidade, divida por bairros: `--cidades "Pituba, Salvador BA" "Barra, Salvador BA"`.
+- **Redes sociais:** `--redes-sociais` abre só a página inicial do site de cada empresa e procura
+  Instagram, Facebook e LinkedIn (novas colunas na planilha). Numa busca que já terminou, sem coletar de
+  novo: `python3 scripts/kit.py refinar --pasta resultados/busca-... --redes-sociais`.
+- **Apagar uma busca:** pela tela (botão **Apagar**, que pede confirmação) ou
+  `python3 scripts/kit.py apagar --pasta resultados/busca-...` (pede para digitar "sim").
+
+**Opções avançadas** (também na tela, em "Opções avançadas"; todas usam flags do motor conferidas no
+`-h` e no manual oficial dele, versão v1.18.2):
+
+| Para | Acrescente | Observação |
+|------|-----------|------------|
+| Parar depois de N minutos e usar o que veio | `--tempo-maximo 10` | padrão: 30 minutos |
+| Buscar em volta de um ponto do mapa | `--ponto -12.9714,-38.5014 --raio 3` | latitude,longitude e raio em km; na tela é só clicar no mapa |
+| Modo rápido | `--modo-rapido` (precisa de `--ponto`) | beta do motor: até 21 empresas por consulta, as mais perto do ponto, com menos dados; o próprio motor avisa que pode ter mais bloqueio |
+| Usar proxies que você contratou | `--proxies-arquivo proxies.txt` | um por linha, `protocolo://usuario:senha@host:porta`; o arquivo entra só para leitura e a senha não aparece no comando. O kit não vende nem indica proxies, e proxy não muda os termos do Google nem a LGPD |
+
+Comece sem essas opções. O `testar` nunca usa nenhuma delas.
 
 O resultado fica em `resultados/busca-AAAAMMDD-HHMMSS/`:
 - `relatorio.html`: abra com duplo clique (lista + **mapa**, busca, filtros e botão de WhatsApp; sem internet, a lista funciona e o mapa fica indisponível);

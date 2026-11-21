@@ -26,7 +26,7 @@ import visual  # noqa: E402
 csv.field_size_limit(sys.maxsize)
 
 CAMPOS = ["nome", "categoria", "endereco", "telefone", "tipo_telefone", "whatsapp", "site",
-          "email", "emails", "nota", "avaliacoes", "status", "link_maps", "fonte", "latitude", "longitude"]
+          "email", "emails", "instagram", "facebook", "linkedin", "nota", "avaliacoes", "status", "link_maps", "fonte", "latitude", "longitude"]
 
 MODELO = (Path(__file__).resolve().parent / "modelo_relatorio.html").read_text(encoding="utf-8")
 # MapLibre (BSD-3) embutida no relatório: o arquivo continua abrindo com duplo clique.

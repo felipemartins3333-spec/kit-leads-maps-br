@@ -196,10 +196,11 @@ def numero_ou_vazio(v, inteiro=False):
 # ----------------------------------------------------------------- tratamento
 
 COLUNAS_PADRAO = ["nome", "categoria", "endereco", "telefone", "tipo_telefone", "telefone_e164",
-                  "whatsapp", "site", "email", "emails", "nota", "avaliacoes", "status",
-                  "latitude", "longitude", "link_maps", "place_id", "fonte"]
+                  "whatsapp", "site", "email", "emails", "instagram", "facebook", "linkedin",
+                  "nota", "avaliacoes", "status", "latitude", "longitude", "link_maps", "place_id", "fonte"]
 COLUNAS_EXCEL = ["nome", "categoria", "endereco", "telefone", "tipo_telefone", "whatsapp",
-                 "site", "email", "emails", "nota", "avaliacoes", "status", "link_maps", "fonte"]
+                 "site", "email", "emails", "instagram", "facebook", "linkedin", "nota", "avaliacoes",
+                 "status", "link_maps", "fonte"]
 
 
 def ler_csv(caminho):
@@ -258,6 +259,7 @@ def tratar(linhas, ddd_padrao=None):
             "site": site,
             "email": emails[0] if emails else "",
             "emails": " | ".join(emails),
+            "instagram": "", "facebook": "", "linkedin": "",
             "nota": numero_ou_vazio(r.get("review_rating")),
             "avaliacoes": numero_ou_vazio(r.get("review_count"), inteiro=True),
             "status": limpar_texto(r.get("status")),
@@ -344,7 +346,7 @@ def _blindar_planilha(v):
 def para_excel_br(linha):
     out = {}
     for c in COLUNAS_EXCEL:
-        v = linha.get(c, "")
+        v = linha.get(c, "") or ""
         if c == "nota":
             v = v.replace(".", ",")
         out[c] = _blindar_planilha(v)
@@ -357,11 +359,11 @@ def salvar(saida, pasta, prefixo):
     padrao = pasta / f"{prefixo}-tratados.csv"
     excel = pasta / f"{prefixo}-excel.csv"
     with padrao.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=COLUNAS_PADRAO)
+        w = csv.DictWriter(f, fieldnames=COLUNAS_PADRAO, extrasaction="ignore", restval="")
         w.writeheader()
         w.writerows(saida)
     with excel.open("w", newline="", encoding="utf-8-sig") as f:   # BOM para o Excel acertar os acentos
-        w = csv.DictWriter(f, fieldnames=COLUNAS_EXCEL, delimiter=";")
+        w = csv.DictWriter(f, fieldnames=COLUNAS_EXCEL, delimiter=";", restval="")
         w.writeheader()
         w.writerows(para_excel_br(l) for l in saida)
     return padrao, excel

@@ -36,6 +36,8 @@ PORTA_PADRAO = 8765
 # opção da tela -> (quantidade final, profundidade de rolagem no Maps)
 QUANTIDADES = {"20": (20, 1), "60": (60, 1), "120": (120, 2), "todas": (None, 2)}
 MAX_SEGMENTOS, MAX_BAIRROS, MAX_TEXTO = 5, 8, 80
+TEMPOS_MIN = (10, 30, 60)
+RAIOS_KM = (1, 3, 5, 10)
 _ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 
@@ -71,8 +73,33 @@ def montar_pedido(dados):
     if chave not in QUANTIDADES:
         raise ValueError("Quantidade inválida.")
     quantidade, profundidade = QUANTIDADES[chave]
+    try:
+        tempo = int(dados.get("tempo") or 30)
+    except (TypeError, ValueError):
+        tempo = 0
+    if tempo not in TEMPOS_MIN:
+        raise ValueError("Tempo máximo inválido.")
+    ponto, raio, rapido = None, None, bool(dados.get("rapido"))
+    if dados.get("ponto") is not None:
+        p = dados.get("ponto")
+        try:
+            lat, lon = float(p["lat"]), float(p["lon"])
+        except (TypeError, KeyError, ValueError):
+            raise ValueError("Ponto do mapa inválido.") from None
+        if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+            raise ValueError("Ponto do mapa inválido.")
+        ponto = (round(lat, 6), round(lon, 6))
+        try:
+            raio = int(dados.get("raio") or 3)
+        except (TypeError, ValueError):
+            raio = 0
+        if raio not in RAIOS_KM:
+            raise ValueError("Raio inválido.")
+    if rapido and not ponto:
+        raise ValueError("O modo rápido precisa de um ponto marcado no mapa.")
     return {"segmentos": segmentos, "cidades": cidades, "consultas": consultas, "avisos": avisos,
-            "quantidade": quantidade, "profundidade": profundidade, "email": bool(dados.get("email"))}
+            "quantidade": quantidade, "profundidade": profundidade, "email": bool(dados.get("email")),
+            "redes": bool(dados.get("redes")), "tempo": tempo, "ponto": ponto, "raio": raio, "rapido": rapido}
 
 
 def comando_busca(pedido, pasta):
@@ -84,6 +111,15 @@ def comando_busca(pedido, pasta):
         cmd += ["--profundidade", str(pedido["profundidade"])]
     if pedido["email"]:
         cmd.append("--email")
+    if pedido.get("redes"):
+        cmd.append("--redes-sociais")
+    if pedido.get("tempo") and pedido["tempo"] != 30:
+        cmd += ["--tempo-maximo", str(pedido["tempo"])]
+    if pedido.get("ponto"):
+        lat, lon = pedido["ponto"]
+        cmd += [f"--ponto={lat},{lon}", "--raio", str(pedido["raio"])]
+        if pedido.get("rapido"):
+            cmd.append("--modo-rapido")
     return cmd
 
 
@@ -121,6 +157,16 @@ class Estado:
             proc = self.executar(comando_busca(pedido, pasta), log)
             self.trabalho = {"proc": proc, "pasta": pasta, "log": log, "inicio": time.time(), "pedido": pedido}
         return pasta.name, None
+
+    def apagar(self, nome):
+        with self.trava:
+            t = self.trabalho
+            if t and t["proc"].poll() is None and t["pasta"].name == nome:
+                return False, "Essa busca ainda está rodando. Espere terminar para apagar."
+            ok, msg = painel.apagar_busca(self.pasta_resultados, nome)
+            if ok and t and t["pasta"].name == nome:
+                self.trabalho = None
+            return ok, msg
 
     def _ultimas_linhas(self, n=4):
         try:
@@ -332,7 +378,8 @@ def criar_servidor(estado, token, porta=PORTA_PADRAO, hosts_extras=(), exigir_ch
             # Só a própria tela manda este cabeçalho; outro site não consegue (o navegador bloqueia).
             if not secrets.compare_digest(self.headers.get("X-Kit-Chave") or "", token):
                 return self._negado()
-            if urlsplit(self.path).path != "/api/buscar":
+            rota = urlsplit(self.path).path
+            if rota not in ("/api/buscar", "/api/apagar"):
                 return self._responder(404, "Não encontrado")
             tamanho = int(self.headers.get("Content-Length") or 0)
             if tamanho <= 0 or tamanho > 10_000:
@@ -341,6 +388,9 @@ def criar_servidor(estado, token, porta=PORTA_PADRAO, hosts_extras=(), exigir_ch
                 dados = json.loads(self.rfile.read(tamanho).decode("utf-8"))
                 if not isinstance(dados, dict):
                     raise ValueError("Pedido inválido.")
+                if rota == "/api/apagar":
+                    ok, msg = estado.apagar(str(dados.get("pasta") or ""))
+                    return self._json(200 if ok else 400, {"mensagem": msg} if ok else {"erro": msg})
                 pasta, erro = estado.iniciar(dados)
             except (ValueError, json.JSONDecodeError) as e:
                 return self._json(400, {"erro": str(e) or "Pedido inválido."})

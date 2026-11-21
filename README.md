@@ -83,6 +83,7 @@ segmento + cidade  ->  motor de coleta (Docker)  ->  CSV  ->  camada Brasil  -> 
 | 2b | Pontuação de lead, CNPJ (experimental), guardrails de LGPD | pendente: depende das taxas reais de preenchimento |
 | 3a | Instalação: `scripts/kit.py` (Windows/Mac/Linux/Codespace), Codespace pronto, prompt de instalação, comando `/leads-instalar` | feita; **não testada em Windows, Mac nem Codespace real** |
 | 3b | Comando `/leads-buscar`, skill `leads-maps-br`, testes automáticos em Linux/Windows/Mac (GitHub Actions) e formulário "Relatar problema" | feita; coleta real ainda não validada |
+| 3c | Redes sociais (Instagram/Facebook/LinkedIn), apagar busca e opções avançadas do motor (tempo máximo, ponto + raio, modo rápido, proxies), na tela e no terminal | feita, com testes automáticos; **ainda não usada numa coleta real** |
 
 ## Ver a demonstração (dados 100% fictícios)
 
@@ -99,7 +100,8 @@ python3 -I scripts/gerar_relatorio.py resultados/demo-leads-tratados.csv --saida
 
 | Arquivo | Para quê |
 |---------|----------|
-| `scripts/kit.py` | **comando principal**: `abrir` (tela no navegador), `verificar`, `preparar`, `testar`, `buscar`, `refinar`, `atualizar`, `limpar`, `painel` |
+| `scripts/kit.py` | **comando principal**: `abrir` (tela no navegador), `verificar`, `preparar`, `testar`, `buscar`, `refinar`, `apagar`, `atualizar`, `limpar`, `painel` |
+| `scripts/redes_sociais.py` | procura Instagram, Facebook e LinkedIn na página inicial do site de cada empresa (opcional) |
 | `scripts/interface.py` e `scripts/modelo_interface.html` | a **tela de busca** no navegador (servidor local em 127.0.0.1, com chave no link) |
 | `scripts/painel.py` | **painel das suas buscas** (`resultados/painel.html`): cada busca num cartão, com números e atalhos |
 | `scripts/visual.py` e `scripts/modelo_relatorio.html` | identidade visual (cores, tipografia, ícones próprios) e modelo do relatório |

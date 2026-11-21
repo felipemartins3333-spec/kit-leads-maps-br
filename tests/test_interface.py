@@ -52,6 +52,29 @@ class TesteMontarPedido(unittest.TestCase):
         self.assertIn("--email", cmd)
 
 
+    def test_opcoes_avancadas(self):
+        p = interface.montar_pedido({"segmentos": "a", "cidade": "X BA", "redes": True, "tempo": "10",
+                                     "ponto": {"lat": -12.97, "lon": -38.5}, "raio": 5, "rapido": True})
+        cmd = interface.comando_busca(p, Path("/tmp/x"))
+        self.assertIn("--redes-sociais", cmd)
+        self.assertEqual(cmd[cmd.index("--tempo-maximo") + 1], "10")
+        self.assertIn("--ponto=-12.97,-38.5", cmd)
+        self.assertEqual(cmd[cmd.index("--raio") + 1], "5")
+        self.assertIn("--modo-rapido", cmd)
+        simples = interface.comando_busca(interface.montar_pedido({"segmentos": "a", "cidade": "X BA"}), Path("/x"))
+        for flag in ("--redes-sociais", "--tempo-maximo", "--raio", "--modo-rapido"):
+            self.assertNotIn(flag, simples)
+
+    def test_opcoes_avancadas_invalidas(self):
+        base = {"segmentos": "a", "cidade": "X BA"}
+        for extra in ({"tempo": "999"}, {"rapido": True}, {"ponto": {"lat": 100, "lon": 0}},
+                      {"ponto": {"lat": "x", "lon": 0}}, {"ponto": {"lat": 1, "lon": 1}, "raio": 7},
+                      {"ponto": "-12,-38"}):
+            with self.subTest(extra=extra):
+                with self.assertRaises(ValueError):
+                    interface.montar_pedido(dict(base, **extra))
+
+
 class TesteServidor(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -133,6 +156,21 @@ class TesteServidor(unittest.TestCase):
         self.proc.terminou = 0
         atual = json.loads(self.pedir("GET", "/api/estado")[1])["atual"]
         self.assertFalse(atual["rodando"])
+
+    def test_apagar_busca(self):
+        busca = self.resultados / "busca-20261119-101500"
+        self.assertEqual(self.pedir("POST", "/api/apagar", {"pasta": "busca-20261119-101500"}, chave=False)[0], 403)
+        for ruim in ("../resultados", "busca-x", "", "busca-20261119-101500/../..", "/etc"):
+            with self.subTest(pasta=ruim):
+                self.assertEqual(self.pedir("POST", "/api/apagar", {"pasta": ruim})[0], 400)
+        self.assertTrue(busca.exists())
+        (busca / "andamento.json").write_text("{}", encoding="utf-8")       # rodando pelo Claude
+        self.assertEqual(self.pedir("POST", "/api/apagar", {"pasta": "busca-20261119-101500"})[0], 400)
+        (busca / "andamento.json").unlink()
+        status, corpo, _ = self.pedir("POST", "/api/apagar", {"pasta": "busca-20261119-101500"})
+        self.assertEqual(status, 200, corpo)
+        self.assertFalse(busca.exists())
+        self.assertTrue(self.resultados.exists())
 
     def test_pedido_invalido(self):
         status, corpo, _ = self.pedir("POST", "/api/buscar", {"segmentos": "a", "cidade": ""})

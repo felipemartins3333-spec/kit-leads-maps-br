@@ -34,7 +34,8 @@ Siga `docs/instalacao.md` (ou o comando `/leads-instalar`). O caminho é sempre:
    e-mail no Maps. Mostre os números que o kit medir, não estimativas.
 5. **Comece pequeno.** Primeiro o `testar` (3 consultas, `-depth 1`). Busca maior só quando o
    usuário pedir; avise que mais consultas e mais profundidade = mais tempo e mais risco de o
-   Google limitar o acesso. Uma busca por vez.
+   Google limitar o acesso. Uma busca por vez. Modo rápido e proxies só se a pessoa pedir; proxies só
+   com um arquivo que ela mesma forneceu (nunca indique fornecedor nem cole senhas no chat).
 6. **Confira o CSV, não o código de saída.** O motor sai com código 0 mesmo sem coletar nada;
    o `kit.py` já conta as linhas. Se vier 0 linhas, explique as causas que ele mostra.
 7. **Dados ficam na máquina.** Tudo vai para `resultados/` (fora do git). Não envie listas para
@@ -77,6 +78,9 @@ preenche segmento, cidade, bairros e quantidade e acompanha o andamento; (2) **p
 | Lista com N empresas (as de contato mais completo) | acrescente `--quantidade 60` |
 | Tirar categorias fora do segmento, sem coletar de novo | `python3 scripts/kit.py refinar --pasta resultados/busca-... --excluir-categorias "Academia"` |
 | Ver todas as buscas (painel) | `python3 scripts/kit.py painel` → abre `resultados/painel.html` |
+| Procurar Instagram/Facebook/LinkedIn nos sites | acrescente `--redes-sociais` (ou `refinar --pasta ... --redes-sociais`, sem coletar de novo) |
+| Apagar uma busca | `python3 scripts/kit.py apagar --pasta resultados/busca-...` (pede confirmação) |
+| Opções avançadas (só se a pessoa pedir) | `--tempo-maximo N`, `--ponto LAT,LON --raio KM`, `--modo-rapido` (precisa de `--ponto`), `--proxies-arquivo ARQ` (ver `docs/instalacao.md`) |
 | Liberar espaço (remover o motor) | `python3 scripts/kit.py limpar` (pede confirmação; não apaga `resultados/`) |
 
 No Windows, troque `python3` por `py` e as barras `/` por `\`.

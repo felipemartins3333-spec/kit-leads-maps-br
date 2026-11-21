@@ -47,6 +47,7 @@ import gerar_relatorio  # noqa: E402
 import painel  # noqa: E402
 import planejar_consultas  # noqa: E402
 import resumo_teste  # noqa: E402
+import redes_sociais  # noqa: E402
 import tratar_csv  # noqa: E402
 
 IMAGEM_REPO = "gosom/google-maps-scraper"
@@ -373,8 +374,11 @@ def _montagem_bind(origem, destino, somente_leitura=False):
 
 
 def montar_comando(consultas, pasta_saida, arquivo_saida, idioma="pt-BR", email=False,
-                   profundidade=1, nome=None):
-    """Monta o 'docker run' do motor. Flags do motor confirmadas com -h (v1.18.2)."""
+                   profundidade=1, nome=None, opcoes=None):
+    """Monta o 'docker run' do motor. Flags do motor confirmadas com -h e no README do motor (v1.18.2).
+    opcoes (avançadas, todas opcionais): ponto=(lat, lon) -> -geo; raio_m -> -radius; rapido -> -fast-mode;
+    proxies_arquivo -> -proxies-file (o arquivo entra só para leitura; senhas não aparecem no comando)."""
+    opcoes = opcoes or {}
     cmd = ["docker", "run", "--rm"]
     if nome:
         cmd += ["--name", nome]
@@ -382,11 +386,36 @@ def montar_comando(consultas, pasta_saida, arquivo_saida, idioma="pt-BR", email=
             "--mount", f"type=volume,source={VOLUME_CACHE},target=/opt"]
     cmd += _montagem_bind(consultas, "/queries.txt", somente_leitura=True)
     cmd += _montagem_bind(pasta_saida, "/out")
+    if opcoes.get("proxies_arquivo"):
+        cmd += _montagem_bind(opcoes["proxies_arquivo"], "/proxies.txt", somente_leitura=True)
     cmd += [IMAGEM, "-input", "/queries.txt", "-results", f"/out/{arquivo_saida}",
             "-depth", str(int(profundidade)), "-lang", idioma, "-exit-on-inactivity", INATIVIDADE]
     if email:
         cmd.append("-email")
+    if opcoes.get("ponto"):
+        lat, lon = opcoes["ponto"]
+        cmd.append(f"-geo={lat:.6f},{lon:.6f}")   # com "=": a latitude negativa não vira outra flag
+    if opcoes.get("raio_m"):
+        cmd += ["-radius", str(int(opcoes["raio_m"]))]
+    if opcoes.get("rapido"):
+        cmd.append("-fast-mode")
+    if opcoes.get("proxies_arquivo"):
+        cmd += ["-proxies-file", "/proxies.txt"]
     return cmd
+
+
+def ler_ponto(texto):
+    """'-14.8615, -40.8442' -> (-14.8615, -40.8442). Levanta ValueError com mensagem em português."""
+    partes = [p for p in re.split(r"[,;\s]+", (texto or "").strip()) if p]
+    if len(partes) != 2:
+        raise ValueError("Use o ponto como LATITUDE,LONGITUDE, ex.: -12.9714,-38.5014")
+    try:
+        lat, lon = float(partes[0]), float(partes[1])
+    except ValueError:
+        raise ValueError("Latitude e longitude precisam ser números, ex.: -12.9714,-38.5014") from None
+    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+        raise ValueError("Ponto fora do mapa: latitude vai de -90 a 90 e longitude de -180 a 180.")
+    return lat, lon
 
 
 def devolver_dono(pasta):
@@ -402,9 +431,11 @@ def devolver_dono(pasta):
         pass
 
 
-def rodar_motor(nome_teste, consultas, pasta, arquivo, idioma, email, profundidade, mostrar_comando=False):
+def rodar_motor(nome_teste, consultas, pasta, arquivo, idioma, email, profundidade, mostrar_comando=False,
+                opcoes=None, tempo_maximo_s=None):
     nome_conteiner = f"kit-leads-{os.getpid()}-{nome_teste}"
-    cmd = montar_comando(consultas, pasta, arquivo, idioma, email, profundidade, nome=nome_conteiner)
+    cmd = montar_comando(consultas, pasta, arquivo, idioma, email, profundidade, nome=nome_conteiner, opcoes=opcoes)
+    tempo_maximo_s = tempo_maximo_s or TEMPO_MAXIMO_S
     dizer(f"\n>>> {nome_teste} (idioma: {idioma}, e-mail: {'sim' if email else 'não'}, profundidade: {profundidade})")
     if mostrar_comando:
         dizer("    comando: " + subprocess.list2cmdline(cmd))
@@ -429,7 +460,7 @@ def rodar_motor(nome_teste, consultas, pasta, arquivo, idioma, email, profundida
                     break
                 except subprocess.TimeoutExpired:
                     decorrido = time.monotonic() - inicio
-                    if decorrido > TEMPO_MAXIMO_S:
+                    if decorrido > tempo_maximo_s:
                         parar_conteiner(nome_conteiner, proc)
                         codigo = "tempo_esgotado"
                         break
@@ -581,6 +612,10 @@ def cmd_buscar(a):
         return 2
     if a.profundidade > 3:
         dizer(f"[aviso] Profundidade {a.profundidade}: mais resultados por consulta, mas bem mais tempo e risco de bloqueio.")
+    opcoes, erro = opcoes_avancadas(a)
+    if erro:
+        dizer(erro)
+        return 2
 
     pasta = Path(a.pasta) if a.pasta else PASTA_RESULTADOS / f"busca-{datetime.now():%Y%m%d-%H%M%S}"
     pasta.mkdir(parents=True, exist_ok=True)
@@ -591,7 +626,8 @@ def cmd_buscar(a):
         dizer(f"  - {c}")
 
     if a.mostrar_comando:
-        rodar_motor("busca", arq_consultas, pasta, "bruto.csv", a.idioma, a.email, a.profundidade, True)
+        rodar_motor("busca", arq_consultas, pasta, "bruto.csv", a.idioma, a.email, a.profundidade, True,
+                    opcoes=opcoes)
         return 0
 
     info = verificar(silencioso=True)
@@ -604,26 +640,65 @@ def cmd_buscar(a):
     marcador = pasta / "andamento.json"
     marcador.write_text(json.dumps({"inicio": time.time(), "consultas": consultas}, ensure_ascii=False), encoding="utf-8")
     try:
-        m = rodar_motor("busca", arq_consultas, pasta, "bruto.csv", a.idioma, a.email, a.profundidade)
+        m = rodar_motor("busca", arq_consultas, pasta, "bruto.csv", a.idioma, a.email, a.profundidade,
+                        opcoes=opcoes, tempo_maximo_s=a.tempo_maximo * 60)
     finally:
         try:
             marcador.unlink()
         except OSError:
             pass
+    if m["codigo_saida"] == "tempo_esgotado":
+        dizer(f"[aviso] Chegou ao tempo máximo ({a.tempo_maximo} min): a coleta foi parada e a lista usa o que veio até aqui.")
     if m["linhas_csv"] == 0:
         explicar_zero_linhas(pasta)
         return 1
 
     finalizar_lista(pasta, consultas, a.ddd_padrao, a.quantidade, a.excluir_categorias, a.so_categorias,
-                    com_email=a.email)
+                    com_email=a.email, procurar_redes=a.redes_sociais)
     dizer(f"Tempo total da coleta: {formatar_tempo(m['segundos'])}")
     dizer("\nO motor de coleta é o projeto aberto github.com/gosom/google-maps-scraper (Georgios Komninos).")
     dizer("Se a lista ajudou, deixar uma estrela lá é um jeito simples de apoiar quem fez.")
     return 0
 
 
+def opcoes_avancadas(a):
+    """Valida as opções avançadas de 'buscar'. Devolve (opcoes_do_motor, mensagem_de_erro)."""
+    opcoes = {}
+    if not 1 <= a.tempo_maximo <= 180:
+        return None, "O tempo máximo vai de 1 a 180 minutos."
+    if a.ponto:
+        try:
+            opcoes["ponto"] = ler_ponto(a.ponto)
+        except ValueError as e:
+            return None, str(e)
+    if a.raio is not None:
+        if not a.ponto:
+            return None, "O --raio só vale junto com --ponto LATITUDE,LONGITUDE."
+        if not 0.1 <= a.raio <= 50:
+            return None, "O raio vai de 0,1 a 50 km."
+        opcoes["raio_m"] = int(a.raio * 1000)
+    if a.modo_rapido:
+        if not a.ponto:
+            return None, ("O modo rápido precisa de um ponto no mapa: acrescente --ponto LATITUDE,LONGITUDE "
+                          "(e, se quiser, --raio em km).")
+        opcoes["rapido"] = True
+        opcoes.setdefault("raio_m", 5000)
+        dizer("[aviso] Modo rápido (beta do motor): até 21 empresas por consulta, ordenadas pela distância do ponto, "
+              "com menos dados. O próprio motor avisa que pode ter mais bloqueio.")
+    if a.proxies_arquivo:
+        arq = Path(a.proxies_arquivo)
+        if not arq.is_file():
+            return None, f"Não achei o arquivo de proxies: {arq}"
+        if not [l for l in arq.read_text(encoding="utf-8-sig", errors="replace").splitlines() if l.strip()]:
+            return None, "O arquivo de proxies está vazio (um proxy por linha, ex.: http://usuario:senha@host:porta)."
+        opcoes["proxies_arquivo"] = arq.resolve()
+        dizer("[aviso] Usando proxies: o kit não vende nem indica proxies. Use só serviços contratados por você; "
+              "proxies não mudam os termos do Google nem a LGPD.")
+    return opcoes, None
+
+
 def finalizar_lista(pasta, consultas, ddd_padrao=None, quantidade=None, excluir=None, somente=None,
-                    com_email=True):
+                    com_email=True, procurar_redes=False):
     """Do bruto.csv à lista final: trata, tira categorias fora do segmento, escolhe as N com contato
     mais completo, gera planilhas, relatório e painel. Usado por 'buscar' e 'refinar' (sem coletar de novo)."""
     pasta = Path(pasta)
@@ -631,6 +706,17 @@ def finalizar_lista(pasta, consultas, ddd_padrao=None, quantidade=None, excluir=
     categorias = tratar_csv.contar_categorias(todas)
     filtradas = tratar_csv.filtrar_categorias(todas, excluir, somente)
     removidas_categoria = len(todas) - len(filtradas)
+    cache = redes_sociais.ler_cache(pasta)
+    if procurar_redes:
+        faltam = sorted({l["site"] for l in filtradas if l.get("site") and l["site"] not in cache})
+        if faltam:
+            dizer(f"\nProcurando Instagram, Facebook e LinkedIn na página inicial de {len(faltam)} site(s)...")
+            cache.update(redes_sociais.procurar(
+                faltam, ao_avancar=lambda f, t: andamento(f"    ... sites visitados: {f} de {t}")))
+            andamento("", final=True)
+            redes_sociais.gravar_cache(pasta, cache)
+    if cache:
+        redes_sociais.aplicar(todas, cache)
     for antigo in ("todas-tratados.csv", "todas-excel.csv"):
         if (pasta / antigo).exists():
             (pasta / antigo).unlink()
@@ -663,6 +749,9 @@ def finalizar_lista(pasta, consultas, ddd_padrao=None, quantidade=None, excluir=
           f"{conta(lambda l: not l['telefone'])} sem telefone válido")
     dizer(f"Com site: {conta(lambda l: l['site'])} | com e-mail: {conta(lambda l: l['email'])}"
           + ("" if com_email else " (rode com --email para procurar e-mails nos sites)"))
+    if cache:
+        dizer(f"Redes sociais (achadas no site da empresa): Instagram {conta(lambda l: l.get('instagram'))}, "
+              f"Facebook {conta(lambda l: l.get('facebook'))}, LinkedIn {conta(lambda l: l.get('linkedin'))}")
     if categorias:
         top = ", ".join(f"{c} ({q})" for c, q in categorias[:10])
         dizer(f"Categorias encontradas: {top}" + (" ..." if len(categorias) > 10 else ""))
@@ -686,6 +775,22 @@ def cmd_abrir(a):
     return interface.main(args, PASTA_RESULTADOS)
 
 
+def cmd_apagar(a):
+    nome = Path(a.pasta).name
+    if not a.sim:
+        dizer(f"Isto apaga a busca {nome} (planilhas, relatório e dados coletados). Não dá para desfazer.")
+        try:
+            resposta = input("Digite 'sim' para apagar: ").strip().lower()
+        except EOFError:
+            resposta = ""
+        if resposta != "sim":
+            dizer("Nada foi apagado.")
+            return 1
+    ok, msg = painel.apagar_busca(PASTA_RESULTADOS, nome)
+    dizer(msg)
+    return 0 if ok else 1
+
+
 def cmd_refinar(a):
     dizer("=== Kit de leads — refinar uma busca (sem coletar de novo) ===")
     pasta = Path(a.pasta)
@@ -698,7 +803,8 @@ def cmd_refinar(a):
     consultas = []
     if (pasta / "consultas.txt").exists():
         consultas = [c.strip() for c in (pasta / "consultas.txt").read_text(encoding="utf-8-sig").splitlines() if c.strip()]
-    finalizar_lista(pasta, consultas, a.ddd_padrao, a.quantidade, a.excluir_categorias, a.so_categorias)
+    finalizar_lista(pasta, consultas, a.ddd_padrao, a.quantidade, a.excluir_categorias, a.so_categorias,
+                    procurar_redes=a.redes_sociais)
     return 0
 
 
@@ -845,6 +951,16 @@ def main(argv=None):
     b.add_argument("--pasta", help="pasta onde gravar esta busca (padrão: resultados/busca-AAAAMMDD-HHMMSS)")
     b.add_argument("--excluir-categorias", nargs="+", default=[], help="categorias que não são do segmento")
     b.add_argument("--so-categorias", nargs="+", default=[], help="manter só estas categorias")
+    b.add_argument("--redes-sociais", action="store_true",
+                   help="procura Instagram, Facebook e LinkedIn na página inicial do site de cada empresa")
+    av = b.add_argument_group("opções avançadas (do motor)")
+    av.add_argument("--tempo-maximo", type=int, default=TEMPO_MAXIMO_S // 60,
+                    help=f"para a coleta depois de N minutos e usa o que veio (padrão {TEMPO_MAXIMO_S // 60})")
+    av.add_argument("--ponto", help="centro da busca no mapa, LATITUDE,LONGITUDE (ex.: -12.9714,-38.5014)")
+    av.add_argument("--raio", type=float, help="raio em km em volta do --ponto (0,1 a 50)")
+    av.add_argument("--modo-rapido", action="store_true",
+                    help="beta do motor: até 21 empresas por consulta, perto do --ponto, com menos dados")
+    av.add_argument("--proxies-arquivo", help="arquivo com um proxy por linha (protocolo://usuario:senha@host:porta)")
     b.add_argument("--mostrar-comando", action="store_true", help="só mostra o comando, não executa")
     ab = sub.add_parser("abrir", help="abre a tela de busca no navegador")
     ab.add_argument("--porta", type=int, default=None, help="porta (padrão: variável PORT ou 8765)")
@@ -856,15 +972,23 @@ def main(argv=None):
     r.add_argument("--excluir-categorias", nargs="+", default=[])
     r.add_argument("--so-categorias", nargs="+", default=[])
     r.add_argument("--ddd-padrao")
+    r.add_argument("--redes-sociais", action="store_true", help="procura Instagram/Facebook/LinkedIn nos sites")
+    apg = sub.add_parser("apagar", help="apaga uma busca de resultados/ (pede confirmação)")
+    apg.add_argument("--pasta", required=True, help="pasta da busca, ex.: resultados/busca-20261119-101500")
+    apg.add_argument("--sim", action="store_true", help="não pergunta (para quem já confirmou)")
     sub.add_parser("atualizar", help="baixa a versão nova do kit e a versão do motor que ela usa")
     lp = sub.add_parser("limpar", help="remove o motor do computador (libera ~2 GB)")
     lp.add_argument("--antigas", action="store_true", help="remove só versões antigas do motor")
     lp.add_argument("--sim", action="store_true", help="não pergunta (para quem já confirmou)")
     sub.add_parser("painel", help="(re)gera resultados/painel.html com todas as suas buscas")
-    a = ap.parse_args(argv)
+    argv = list(sys.argv[1:] if argv is None else argv)
+    for i in range(len(argv) - 1):   # "--ponto -12.97,-38.50": o "-" da latitude não é uma opção
+        if argv[i] == "--ponto" and re.match(r"^-\d", argv[i + 1]):
+            argv[i:i + 2] = [f"--ponto={argv[i + 1]}", ""]
+    a = ap.parse_args([x for x in argv if x != ""])
     acoes = {"verificar": cmd_verificar, "preparar": cmd_preparar, "testar": cmd_testar, "buscar": cmd_buscar,
              "atualizar": cmd_atualizar, "limpar": cmd_limpar, "painel": cmd_painel, "refinar": cmd_refinar,
-             "abrir": cmd_abrir}
+             "abrir": cmd_abrir, "apagar": cmd_apagar}
     if a.comando not in acoes:
         ap.print_help()
         return 2

@@ -291,6 +291,8 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
   var estado = { busca: "", filtros: {}, ordem: "nome", categoria: "", visiveis: POR_PAGINA };
   var RE_ZAP = /^https:\/\/wa\.me\/55\d{10,11}$/;
   var RE_HTTP = /^https?:\/\/[^\s]+$/i;
+  var RE_REDE = /^https:\/\/www\.(instagram|facebook|linkedin)\.com\/[^\s"<>]+$/;
+  var REDES = [["instagram", "Instagram"], ["facebook", "Facebook"], ["linkedin", "LinkedIn"]];
   var RE_EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/;
   var NS = "http://www.w3.org/2000/svg";
   var ICONES = __ICONES_JSON__;
@@ -413,6 +415,7 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
       if (!ehDemo(l)) m.removeAttribute("target");
       acoes.appendChild(m);
     }
+    REDES.forEach(function (r) { if (l[r[0]] && RE_REDE.test(l[r[0]])) acoes.appendChild(acao("", "abrir", r[1], l[r[0]], l[r[0]])); });
     if (l.link_maps && RE_HTTP.test(l.link_maps)) acoes.appendChild(acao("", "pino", "Mapa", l.link_maps, "Ver no Google Maps"));
     if (!acoes.childNodes.length) acoes.appendChild(el("span", "vazio", "sem contato direto"));
     tdContato.appendChild(acoes);
@@ -534,6 +537,7 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
     }
     if (l.link_maps && RE_HTTP.test(l.link_maps)) ac.appendChild(acaoCartao("", "pino", "Rotas", l.link_maps, true));
     if (l.site && RE_HTTP.test(l.site)) ac.appendChild(acaoCartao("", "globo", "Site", l.site, true));
+    if (l.instagram && RE_REDE.test(l.instagram)) ac.appendChild(acaoCartao("", "abrir", "Instagram", l.instagram, true));
     if (ac.childNodes.length) c.appendChild(ac);
     return c;
   }
@@ -731,7 +735,7 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
   }
   document.getElementById("baixar").addEventListener("click", function () {
     var cols = ["nome", "categoria", "endereco", "telefone", "tipo_telefone", "whatsapp", "site", "email",
-                "emails", "nota", "avaliacoes", "link_maps", "fonte"];
+                "emails", "instagram", "facebook", "linkedin", "nota", "avaliacoes", "link_maps", "fonte"];
     var linhas = [cols.join(";")];
     atuais.forEach(function (l) {
       linhas.push(cols.map(function (c) {
@@ -754,7 +758,7 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
   }
   document.getElementById("copiar").addEventListener("click", function () {
     var cols = ["nome", "categoria", "endereco", "telefone", "tipo_telefone", "whatsapp", "site", "email",
-                "nota", "avaliacoes", "link_maps"];
+                "instagram", "facebook", "linkedin", "nota", "avaliacoes", "link_maps"];
     var texto = [cols.join("\t")].concat(atuais.map(function (l) {
       return cols.map(function (c) { return celulaTsv(c === "nota" ? String(l[c] || "").replace(".", ",") : l[c]); }).join("\t");
     })).join("\n");
