@@ -26,9 +26,11 @@ import visual  # noqa: E402
 csv.field_size_limit(sys.maxsize)
 
 CAMPOS = ["nome", "categoria", "endereco", "telefone", "tipo_telefone", "whatsapp", "site",
-          "email", "emails", "nota", "avaliacoes", "status", "link_maps", "fonte"]
+          "email", "emails", "nota", "avaliacoes", "status", "link_maps", "fonte", "latitude", "longitude"]
 
 MODELO = (Path(__file__).resolve().parent / "modelo_relatorio.html").read_text(encoding="utf-8")
+# MapLibre (BSD-3) embutida no relatório: o arquivo continua abrindo com duplo clique.
+VENDOR = Path(__file__).resolve().parent / "vendor" / "maplibre"
 
 
 def json_seguro_para_html(obj):
@@ -68,6 +70,9 @@ def gerar(linhas, titulo, consultas=None):
         ("__GERADO__", agora),
         ("__TOTAL__", str(len(linhas))),
         ("__CONSULTAS__", lista_consultas_html(consultas)),
+        ("__ICONE_PINO__", visual.icone_svg("pino")),
+        ("__MAPLIBRE_CSS__", (VENDOR / "maplibre-gl.css").read_text(encoding="utf-8")),
+        ("__MAPLIBRE_JS__", (VENDOR / "maplibre-gl.js").read_text(encoding="utf-8")),
     ]
     pagina = MODELO
     for marcador, valor in trocas:

@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; worker-src blob:; child-src blob:; img-src data: blob: https://tiles.openfreemap.org; connect-src https://tiles.openfreemap.org; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
 <title>__TITULO__</title>
+<style>__MAPLIBRE_CSS__</style>
 <style>
 __ESTILO_BASE__
 /* ---------- relatório ---------- */
@@ -73,7 +74,51 @@ tbody tr:last-child td{border-bottom:0}
 .endereco{color:var(--suave);font-size:.92rem;max-width:30ch}
 .vazio{color:var(--suave);font-size:.9rem}
 .mais{display:flex;margin:18px auto 0}
+/* ---------- mapa ---------- */
+.conteudo.com-mapa{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:18px;align-items:start}
+.mapa-caixa{display:none;position:relative;border:1px solid var(--linha);border-radius:18px;overflow:hidden;box-shadow:var(--sombra);background:var(--papel-2)}
+.com-mapa .mapa-caixa{display:block;position:sticky;top:14px;height:calc(100vh - 28px);min-height:440px}
+#mapa{position:absolute;inset:0}
+.mapa-aviso{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;margin:0;padding:10px 12px;border-radius:12px;background:var(--papel);border:1px solid var(--linha);color:var(--suave);font-size:.88rem;box-shadow:var(--sombra)}
+.com-mapa .lista{background:transparent;border:0;box-shadow:none;border-radius:0;overflow:visible}
+.com-mapa table,.com-mapa tbody,.com-mapa tr,.com-mapa td{display:block;width:100%}
+.com-mapa thead{display:none}
+.com-mapa tbody tr{background:var(--papel);border:1px solid var(--linha);border-radius:16px;margin:0 0 10px;padding:6px 0;box-shadow:var(--sombra);cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.com-mapa tbody tr:hover{background:var(--papel);border-color:var(--marca)}
+.com-mapa td{border:0;padding:5px 16px}
+.com-mapa td[data-rotulo]::before{content:attr(data-rotulo);display:block;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--suave);margin-bottom:2px}
+.com-mapa .endereco{max-width:none}
+.tem-mapa .ferramentas{position:static}
+.com-mapa tbody tr{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;padding:10px 0}
+.com-mapa td{padding:3px 16px}
+.com-mapa td[data-rotulo]::before{display:none}
+.com-mapa td:nth-child(1){grid-column:1/-1;padding-bottom:6px}
+.com-mapa td:nth-child(2){grid-column:1;grid-row:2}
+.com-mapa td:nth-child(2) br{display:none}
+.com-mapa td:nth-child(2) .tipo{margin:0 0 0 6px;vertical-align:1px}
+.com-mapa td:nth-child(4){grid-column:2;grid-row:2;text-align:right}
+.com-mapa td:nth-child(4) .aval{display:inline;margin-left:4px}
+.com-mapa td:nth-child(3){grid-column:1/-1;grid-row:3;padding-top:8px}
+.com-mapa td:nth-child(5){grid-column:1/-1;grid-row:4;font-size:.84rem}
+.com-mapa td.sem-rotulo.vazio{grid-column:1/-1}
+tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--marca)}
+.pino-wrap{width:30px;height:38px;display:flex;align-items:flex-start;justify-content:center;cursor:pointer}
+.pino{position:relative;width:26px;height:26px;margin-top:2px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--marca);border:2px solid #fff;box-shadow:0 3px 8px rgba(10,20,25,.35);transition:transform .15s}
+.pino::after{content:"";position:absolute;width:8px;height:8px;border-radius:50%;background:#fff;top:7px;left:7px}
+.pino.zap{background:var(--zap)}
+.pino-wrap:hover .pino,.pino.ativo{transform:rotate(-45deg) scale(1.25)}
+.pino.ativo{box-shadow:0 0 0 4px var(--marca-suave),0 3px 8px rgba(10,20,25,.35)}
+.maplibregl-popup-content{border-radius:14px;padding:12px 14px 12px;font:14px/1.45 var(--sans);color:var(--tinta);background:var(--papel);box-shadow:0 10px 30px -10px rgba(10,20,25,.45)}
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:var(--papel)}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:var(--papel)}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip{border-right-color:var(--papel)}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip{border-left-color:var(--papel)}
+.maplibregl-popup-close-button{font-size:18px;padding:2px 8px;color:var(--suave)}
+.popup-nome{display:block;font-weight:600;padding-right:18px}
+.popup-linha{display:block;color:var(--suave);font-size:.86rem}
+.popup .acoes{margin-top:10px}
 .escondido{display:none!important}
+@media (max-width:1100px){.conteudo.com-mapa{grid-template-columns:1fr}.com-mapa .mapa-caixa{position:relative;top:0;height:62vh;min-height:360px}}
 @media (max-width:980px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.linha-campos{grid-template-columns:1fr 1fr}.campo.grande{grid-column:1/-1}}
 @media (max-width:760px){
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -94,7 +139,8 @@ tbody tr:last-child td{border-bottom:0}
   .endereco{max-width:none}
 }
 @media print{
-  .ferramentas,.barra .botoes,.status-copia,.mais,.acao{display:none!important}
+  .ferramentas,.barra .botoes,.status-copia,.mais,.acao,.mapa-caixa{display:none!important}
+  .conteudo.com-mapa{display:block}
   body{background:#fff}
   .kpi,.lista,tbody tr{box-shadow:none}
 }
@@ -135,6 +181,7 @@ tbody tr:last-child td{border-bottom:0}
     <div class="barra">
       <p class="contagem" id="contagem" aria-live="polite"></p>
       <div class="botoes">
+        <button type="button" class="botao" id="alternar-mapa" aria-pressed="false">__ICONE_PINO__<span id="texto-mapa">Ver no mapa</span></button>
         <button type="button" class="botao" id="limpar">__ICONE_LIMPAR__Limpar filtros</button>
         <button type="button" class="botao" id="copiar">__ICONE_COPIAR__Copiar para Google Sheets</button>
         <button type="button" class="botao principal" id="baixar">__ICONE_BAIXAR__Baixar planilha (Excel)</button>
@@ -143,6 +190,8 @@ tbody tr:last-child td{border-bottom:0}
     <p class="status-copia" id="status-copia" aria-live="polite"></p>
   </section>
 
+  <div class="conteudo" id="conteudo">
+  <div class="coluna-lista">
   <div class="lista">
     <table>
       <caption>Lista de empresas</caption>
@@ -157,6 +206,12 @@ tbody tr:last-child td{border-bottom:0}
     </table>
   </div>
   <button type="button" class="botao mais escondido" id="mais">Mostrar mais</button>
+  </div>
+  <aside class="mapa-caixa" id="mapa-caixa" aria-label="Mapa das empresas">
+    <div id="mapa"></div>
+    <p class="mapa-aviso" id="mapa-aviso" hidden></p>
+  </aside>
+  </div>
 
   <footer class="rodape">
     <p><strong>Antes de usar esta lista.</strong> Coletar dados do Google Maps de forma automática pode contrariar os termos de uso do Google.
@@ -164,11 +219,13 @@ tbody tr:last-child td{border-bottom:0}
     base legal e respeito a quem pedir para não ser contatado. Isto não é aconselhamento jurídico.</p>
     <p>Empresa sem telefone, site ou e-mail nesta lista quer dizer que a coleta não encontrou esse dado no Google Maps,
     não que a empresa não tenha.</p>
-    <p>Os dados ficam só neste arquivo, no seu computador. Esta página não envia nada para a internet.
+    <p>Os dados ficam só neste arquivo, no seu computador. O mapa baixa as imagens do mapa pela internet
+    (OpenFreeMap, com dados do OpenStreetMap); os dados da sua lista não são enviados. Sem internet, a lista funciona e o mapa fica indisponível.
     Motor de coleta: <span class="credito">gosom/google-maps-scraper</span> (código aberto, licença MIT).</p>
   </footer>
 </div>
 
+<script>__MAPLIBRE_JS__</script>
 <script id="dados" type="application/json">__DADOS__</script>
 <script>
 (function () {
@@ -258,6 +315,11 @@ tbody tr:last-child td{border-bottom:0}
   }
   function criarLinha(l) {
     var tr = document.createElement("tr");
+    l._tr = tr;
+    tr.addEventListener("click", function (ev) {
+      if (!conteudo.classList.contains("com-mapa") || ev.target.closest("a")) return;
+      selecionar(l, true);
+    });
 
     var tdNome = celula(null);
     var bloco = el("div", "empresa");
@@ -361,6 +423,99 @@ tbody tr:last-child td{border-bottom:0}
       });
   })();
 
+  // ---------------- mapa (MapLibre + OpenFreeMap) ----------------
+  var conteudo = document.getElementById("conteudo");
+  var botaoMapa = document.getElementById("alternar-mapa");
+  var avisoMapa = document.getElementById("mapa-aviso");
+  var mapa = null, marcadores = [], selecionada = null;
+  var MAPA_OK = typeof maplibregl !== "undefined";
+  function coords(l) {
+    var a = parseFloat(l.latitude), o = parseFloat(l.longitude);
+    if (!isFinite(a) || !isFinite(o) || Math.abs(a) > 90 || Math.abs(o) > 180 || (a === 0 && o === 0)) return null;
+    return [o, a];
+  }
+  var COM_COORDS = LINHAS.filter(coords).length;
+  if (!COM_COORDS) botaoMapa.classList.add("escondido");
+  function avisar(texto) { avisoMapa.textContent = texto; avisoMapa.hidden = !texto; }
+  function conteudoPopup(l) {
+    var c = el("div", "popup");
+    c.appendChild(el("span", "popup-nome", l.nome));
+    if (l.categoria) c.appendChild(el("span", "popup-linha", l.categoria));
+    if (l.telefone) c.appendChild(el("span", "popup-linha", l.telefone));
+    if (l._nota) c.appendChild(el("span", "popup-linha", "★ " + String(l.nota).replace(".", ",") +
+      (l._aval ? " · " + l._aval.toLocaleString("pt-BR") + " avaliações" : "")));
+    var ac = el("div", "acoes");
+    if (temZap(l)) {
+      if (ehDemo(l)) ac.appendChild(acao("zap demo", "conversa", "WhatsApp (demo)", null));
+      else ac.appendChild(acao("zap", "conversa", "WhatsApp", l.whatsapp));
+    }
+    if (l.link_maps && RE_HTTP.test(l.link_maps)) ac.appendChild(acao("", "pino", "Rotas", l.link_maps, "Abrir no mapa"));
+    if (ac.childNodes.length) c.appendChild(ac);
+    return c;
+  }
+  function selecionar(l, daLista) {
+    if (selecionada && selecionada._pino) selecionada._pino.classList.remove("ativo");
+    if (selecionada && selecionada._tr) selecionada._tr.classList.remove("ativo");
+    selecionada = l;
+    if (l._tr) { l._tr.classList.add("ativo"); if (!daLista) l._tr.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
+    if (l._pino) l._pino.classList.add("ativo");
+    if (daLista && mapa && l._marcador) {
+      mapa.flyTo({ center: l._marcador.getLngLat(), zoom: Math.max(mapa.getZoom(), 14.5), duration: 700 });
+      if (!l._marcador.getPopup().isOpen()) l._marcador.togglePopup();
+    }
+  }
+  function desenharMarcadores(ajustar) {
+    if (!mapa) return;
+    marcadores.forEach(function (m) { m.remove(); });
+    marcadores = [];
+    var limites = new maplibregl.LngLatBounds(), n = 0;
+    atuais.forEach(function (l) {
+      var c = coords(l);
+      if (!c) return;
+      var caixa = el("div", "pino-wrap"), pino = el("div", "pino" + (temZap(l) ? " zap" : ""));
+      caixa.appendChild(pino);
+      caixa.title = l.nome;
+      caixa.setAttribute("aria-label", l.nome);
+      var popup = new maplibregl.Popup({ offset: 30, maxWidth: "290px", focusAfterOpen: false }).setDOMContent(conteudoPopup(l));
+      var mk = new maplibregl.Marker({ element: caixa, anchor: "bottom" }).setLngLat(c).setPopup(popup).addTo(mapa);
+      caixa.addEventListener("click", function () { selecionar(l, false); });
+      l._marcador = mk; l._pino = pino;
+      marcadores.push(mk); limites.extend(c); n++;
+    });
+    if (ajustar && n) mapa.fitBounds(limites, { padding: 70, maxZoom: 15, duration: ajustar === "suave" ? 600 : 0 });
+  }
+  function iniciarMapa() {
+    if (mapa) return;
+    if (!MAPA_OK) { avisar("O mapa não carregou neste navegador. A lista continua funcionando."); return; }
+    var escuro = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    try {
+      mapa = new maplibregl.Map({ container: "mapa", style: "https://tiles.openfreemap.org/styles/" + (escuro ? "dark" : "positron"),
+        center: [-47.9, -15.8], zoom: 3.6, attributionControl: { compact: true }, cooperativeGestures: false });
+    } catch (e) {
+      MAPA_OK = false; mapa = null;
+      avisar("O mapa não abriu neste navegador (precisa de WebGL). A lista continua funcionando."); return;
+    }
+    mapa.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    var avisado = false;
+    mapa.on("error", function () {
+      if (avisado || mapa.isStyleLoaded()) return;
+      avisado = true;
+      avisar("Sem internet, o fundo do mapa não carrega. Os alfinetes e a lista continuam funcionando.");
+    });
+    mapa.on("load", function () { avisar(""); });
+    desenharMarcadores(true);
+  }
+  function mostrarMapa(sim) {
+    conteudo.classList.toggle("com-mapa", sim);
+    document.body.classList.toggle("tem-mapa", sim);
+    botaoMapa.setAttribute("aria-pressed", sim ? "true" : "false");
+    document.getElementById("texto-mapa").textContent = sim ? "Ocultar mapa" : "Ver no mapa";
+    if (!sim) return;
+    iniciarMapa();
+    if (mapa) setTimeout(function () { mapa.resize(); desenharMarcadores(true); }, 60);
+  }
+  botaoMapa.addEventListener("click", function () { mostrarMapa(!conteudo.classList.contains("com-mapa")); });
+
   var atuais = [];
   function atualizar() {
     atuais = LINHAS.filter(passa).sort(comparar);
@@ -375,6 +530,7 @@ tbody tr:last-child td{border-bottom:0}
     var restam = atuais.length - estado.visiveis;
     botaoMais.classList.toggle("escondido", restam <= 0);
     if (restam > 0) botaoMais.textContent = "Mostrar mais (" + restam + " restantes)";
+    if (mapa) desenharMarcadores("suave");
     if (!atuais.length) {
       var tr = document.createElement("tr"), td = el("td", "sem-rotulo vazio");
       td.colSpan = 5; td.textContent = "Nenhuma empresa com esses filtros. Tente limpar os filtros.";
@@ -455,6 +611,7 @@ tbody tr:last-child td{border-bottom:0}
   });
 
   atualizar();
+  if (COM_COORDS && window.matchMedia && window.matchMedia("(min-width: 1101px)").matches) mostrarMapa(true);
 })();
 </script>
 </body>

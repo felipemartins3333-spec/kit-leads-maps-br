@@ -1,3 +1,4 @@
+import re
 import sys
 import tempfile
 import unittest
@@ -107,7 +108,12 @@ class TesteNaMaquinaReal(unittest.TestCase):
             html = Path(d) / "r.html"
             self.assertEqual(gerar_relatorio.main([str(tratados), "--saida", str(html)]), 0)
             conteudo = html.read_text(encoding="utf-8")
-            self.assertIn("connect-src 'none'", conteudo)
+            csp = re.search(r'Content-Security-Policy" content="([^"]+)"', conteudo).group(1)
+            self.assertIn("connect-src https://tiles.openfreemap.org;", csp)
+            hosts = set(re.findall(r"https://[^ ;]+", csp))
+            self.assertEqual(hosts, {"https://tiles.openfreemap.org"}, "o relatório só pode falar com o servidor de mapas")
+            self.assertIn("maplibregl", conteudo, "a MapLibre vai embutida no próprio arquivo")
+            self.assertIn('"latitude"', conteudo)
             self.assertIn("Odonto Sorriso de Mentira", conteudo)
             self.assertIn('id="categoria"', conteudo)
             self.assertIn("Qualidade dos contatos", conteudo)

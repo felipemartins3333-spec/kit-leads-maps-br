@@ -437,3 +437,29 @@ e `testar`. Não precisou instalar nada no sistema nem pedir confirmação.
   POST sem cabeçalho, travessia de pasta (`../`, `%2e%2e`), uma busca por vez, validação; no Chromium,
   fluxo completo com uma coleta simulada (CSV fictício no lugar do Google), 0 requisições externas,
   0 rolagem lateral no celular. Corrigidos: chave liga/desliga que não aparecia e desalinhamento.
+
+## Rodada 13 (2026-11-21) — mapa no relatório
+
+- **Pedido do Felipe:** mapa como no vzbaggio, estética "de mapa", sem copiar ninguém e sem infringir
+  direitos do Google.
+- **Google Maps (tiles/API): descartado.** Os termos do Google não permitem usar o mapa deles fora dos
+  produtos/APIs deles; também evitamos imitar o visual do Google (cores, alfinete vermelho).
+- **OpenStreetMap (tile.openstreetmap.org): descartado.** A política oficial (lida por resultado de busca;
+  a página não abriu daqui) diz que "distributing a heavy-usage app that uses tiles from openstreetmap.org
+  is forbidden without prior permission". Um lead magnet distribuído a muita gente é exatamente isso.
+- **Escolhido: OpenFreeMap + MapLibre.** README oficial do OpenFreeMap (GitHub hyperknot/openfreemap, lido
+  em 21/11/2026): instância pública "completely free... no limits on the number of map views or requests.
+  There's no registration, no user database, no API keys, and no cookies"; MIT; atribuição obrigatória
+  (automática na MapLibre; em vídeo/impresso precisa aparecer: OpenFreeMap · © OpenMapTiles · Data from
+  OpenStreetMap). Estilos: positron (claro, limpo, sem POIs) e dark (este "unmodified", ainda incompleto).
+  MapLibre GL JS 5.24.1 (BSD-3) baixada do npm, **sha512 conferido** com o publicado; embutida no relatório
+  (o arquivo continua abrindo com duplo clique; ~1,1 MB a mais).
+- **Privacidade:** o navegador pede só imagens do mapa a `tiles.openfreemap.org` (que ficam sabendo da
+  região vista); a lista não é enviada. CSP: `connect-src`/`img-src` só para esse host; teste garante que
+  nenhum outro host aparece.
+- **Visual:** lista + mapa lado a lado (≥ 1100 px; no celular, botão "Ver no mapa"); alfinetes próprios
+  (verde = tem WhatsApp); clicar na empresa centraliza e abre o cartão; clicar no alfinete destaca a
+  empresa; filtros valem para o mapa; cartões compactos na lista; sem internet, aviso e lista funcionando.
+- **Demo:** coordenadas fictícias espalhadas no centro de Vitória da Conquista (antes todas iguais).
+- **Não verificado:** o fundo do mapa (a sessão de desenvolvimento não alcança tiles.openfreemap.org);
+  alfinetes, cartões, filtros e o aviso "sem internet" foram verificados no Chromium local.

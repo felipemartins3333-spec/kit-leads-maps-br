@@ -236,7 +236,7 @@ python3 scripts/kit.py buscar --segmentos "clínicas odontológicas" --cidades "
   muito a profundidade, divida por bairros: `--cidades "Pituba, Salvador BA" "Barra, Salvador BA"`.
 
 O resultado fica em `resultados/busca-AAAAMMDD-HHMMSS/`:
-- `relatorio.html`: abra com duplo clique (busca, filtros e botão de WhatsApp; funciona sem internet);
+- `relatorio.html`: abra com duplo clique (lista + **mapa**, busca, filtros e botão de WhatsApp; sem internet, a lista funciona e o mapa fica indisponível);
 - `leads-excel.csv`: abre direto no Excel em português;
 - `leads-tratados.csv`: o mesmo conteúdo em formato padrão, para importar em CRM.
 

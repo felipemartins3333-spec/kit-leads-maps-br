@@ -42,6 +42,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Mapa do relatório
+
+- **MapLibre GL JS** 5.24.1 (código aberto, licença BSD-3-Clause, © MapLibre contributors), embutida no
+  relatório a partir de `scripts/vendor/maplibre/` sem alterações. Licença completa em
+  `scripts/vendor/maplibre/LICENSE.txt`.
+- **OpenFreeMap** (openfreemap.org) fornece o fundo do mapa, gratuitamente e sem chave. Atribuição exigida
+  (aparece no canto do mapa e deve aparecer também em vídeos e materiais impressos):
+  OpenFreeMap · © OpenMapTiles · Dados do © OpenStreetMap (openstreetmap.org/copyright).
+
 ## Sobre este repositório
 
 A camada brasileira (tudo fora da imagem do gosom) é de Felipe Martins Muniz, licenciada
