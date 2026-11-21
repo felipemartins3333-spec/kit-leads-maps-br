@@ -6,6 +6,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
 <title>Nova busca · Kit de Leads</title>
+<style>__MAPLIBRE_CSS__</style>
 <style>
 __ESTILO_BASE__
 .coluna{display:grid;gap:20px;align-content:start}
@@ -27,7 +28,7 @@ input[type=text]:hover{border-color:var(--suave)}
 .segmentos span{display:inline-block;min-width:64px;text-align:center;padding:9px 14px;border-radius:12px;border:1px solid var(--borda-campo);background:var(--papel)}
 .segmentos input:checked+span{background:var(--marca);border-color:var(--marca);color:var(--marca-texto);font-weight:600}
 .segmentos input:focus-visible+span{outline:3px solid var(--foco);outline-offset:2px}
-.chave{position:relative;display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:600;margin:3px 0 0}
+.passo .chave{position:relative;display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:600;margin:3px 0 0}
 .chave input{position:absolute;opacity:0;width:1px;height:1px}
 .trilho{position:relative;display:inline-block;flex:0 0 auto;width:44px;height:26px;border-radius:99px;background:var(--trilho);border:1px solid var(--borda-campo);transition:background .15s}
 .trilho::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:99px;background:var(--papel);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
@@ -64,6 +65,29 @@ input[type=text]:hover{border-color:var(--suave)}
 .busca .botao{min-height:36px;padding:7px 12px;font-size:.88rem}
 .vazio{color:var(--suave);font-size:.92rem}
 .oculto{display:none!important}
+/* mapa da tela */
+.cartao.mapa-cartao{position:relative;padding:0;overflow:hidden;height:420px;background:#E8E4DB}
+#mapa{position:absolute;inset:0}
+.vidro{background:var(--papel);background:color-mix(in srgb,var(--papel) 84%,transparent);-webkit-backdrop-filter:blur(14px) saturate(1.5);
+  backdrop-filter:blur(14px) saturate(1.5);border:1px solid color-mix(in srgb,var(--linha) 85%,transparent);box-shadow:0 10px 28px -14px rgba(10,20,25,.45)}
+.mapa-info{position:absolute;top:14px;left:14px;z-index:4;max-width:calc(100% - 80px);padding:10px 14px;border-radius:16px;font-size:.86rem;color:var(--suave)}
+.mapa-info b{font:600 1.2rem/1 var(--serifa);color:var(--tinta);margin-right:6px}
+.mapa-aviso{position:absolute;left:14px;right:14px;bottom:14px;z-index:4;margin:0;padding:10px 14px;border-radius:14px;background:var(--papel);border:1px solid var(--linha);color:var(--suave);font-size:.86rem}
+.pino-wrap{position:relative;width:34px;height:46px;display:flex;justify-content:center;cursor:pointer}
+.pino{position:relative;width:28px;height:28px;margin-top:3px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:linear-gradient(135deg,#178A80,#0A4A44);border:2.5px solid #fff;box-shadow:0 5px 12px rgba(8,20,22,.42);transition:transform .2s}
+.pino::after{content:"";position:absolute;width:8px;height:8px;border-radius:50%;background:#fff;top:7px;left:7px}
+.pino-selo{position:absolute;top:0;right:2px;width:12px;height:12px;border-radius:50%;background:#22A35A;border:2px solid #fff}
+.pino-wrap:hover .pino{transform:rotate(-45deg) scale(1.15)}
+.maplibregl-popup-content{border-radius:14px;padding:12px 14px;font:14px/1.45 var(--sans);color:var(--tinta);background:var(--papel);box-shadow:0 18px 40px -14px rgba(10,20,25,.5)}
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:var(--papel)}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:var(--papel)}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip{border-right-color:var(--papel)}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip{border-left-color:var(--papel)}
+.pop-nome{display:block;font-weight:600;padding-right:16px}
+.pop-linha{display:block;color:var(--suave);font-size:.84rem}
+.maplibregl-ctrl-group{border-radius:12px!important;overflow:hidden;border:1px solid var(--linha);box-shadow:0 10px 24px -12px rgba(10,20,25,.5)!important}
+.busca.no-mapa{border-color:var(--marca);box-shadow:0 0 0 2px var(--marca)}
+@media (max-width:900px){.cartao.mapa-cartao{height:340px}}
 @media (max-width:900px){.grade-app{grid-template-columns:1fr}.metricas.quatro{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.busca{grid-template-columns:1fr}.busca .botoes{justify-content:flex-start}}
 @media (prefers-reduced-motion: reduce){.pulso,.barra-ind::after{animation:none}}
@@ -121,6 +145,11 @@ input[type=text]:hover{border-color:var(--suave)}
     </section>
 
     <div class="coluna">
+      <section class="cartao mapa-cartao" aria-label="Mapa da busca">
+        <div id="mapa"></div>
+        <div class="vidro mapa-info"><b id="mapa-n">—</b><span id="mapa-titulo">Faça uma busca para ver as empresas no mapa</span></div>
+        <p class="mapa-aviso" id="mapa-aviso" hidden></p>
+      </section>
       <section class="cartao andamento oculto" id="andamento" aria-live="polite" aria-labelledby="t-and">
         <h2 id="t-and">Andamento</h2>
         <div class="status" id="status"><span class="pulso" aria-hidden="true"></span><span id="status-texto">Buscando…</span></div>
@@ -144,6 +173,7 @@ input[type=text]:hover{border-color:var(--suave)}
   </footer>
 </div>
 
+<script>__MAPLIBRE_JS__</script>
 <script>
 (function () {
   "use strict";
@@ -184,13 +214,17 @@ input[type=text]:hover{border-color:var(--suave)}
     caixa.textContent = "";
     if (!buscas.length) { caixa.appendChild(el("p", "vazio", "Nenhuma busca ainda. A primeira aparece aqui.")); return; }
     buscas.forEach(function (b) {
-      var c = el("article", "busca");
+      var c = el("article", "busca" + (b.pasta === pastaNoMapa ? " no-mapa" : ""));
       var info = el("div");
       info.appendChild(el("h3", null, b.consultas[0] || b.pasta));
       var extra = b.consultas.length - 1;
       info.appendChild(el("span", "meta", b.quando + (extra > 0 ? " · + " + extra + (extra > 1 ? " consultas" : " consulta") : "")));
       c.appendChild(info);
       var bt = el("div", "botoes");
+      var bm = el("button", "botao");
+      bm.type = "button"; bm.appendChild(icone("pino")); bm.appendChild(document.createTextNode("Mapa"));
+      bm.addEventListener("click", function () { mostrarNoMapa(b.pasta, b.consultas[0] || b.pasta); });
+      bt.appendChild(bm);
       if (b.relatorio) bt.appendChild(botao("Abrir", b.relatorio, true, "abrir"));
       if (b.planilha) bt.appendChild(botao("Planilha", b.planilha, false, "planilha", true));
       c.appendChild(bt);
@@ -242,10 +276,63 @@ input[type=text]:hover{border-color:var(--suave)}
     }
   }
 
+  // ---------------- mapa da tela ----------------
+  var mapa = null, marcadores = [], pastaNoMapa = null, ultimaPronta = null;
+  var avisoMapa = document.getElementById("mapa-aviso");
+  function avisar(t) { avisoMapa.textContent = t; avisoMapa.hidden = !t; }
+  function iniciarMapa() {
+    if (mapa || typeof maplibregl === "undefined") { if (!mapa) avisar("O mapa não carregou neste navegador."); return; }
+    try {
+      mapa = new maplibregl.Map({ container: "mapa", style: "https://tiles.openfreemap.org/styles/liberty",
+        center: [-47.9, -15.8], zoom: 3.4, attributionControl: { compact: true }, dragRotate: false, touchPitch: false });
+    } catch (e) { mapa = null; avisar("O mapa precisa de WebGL, que este navegador não liberou."); return; }
+    mapa.touchZoomRotate.disableRotation();
+    mapa.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    var avisado = false;
+    mapa.on("error", function () {
+      if (avisado || mapa.isStyleLoaded()) return;
+      avisado = true; avisar("Sem internet, o fundo do mapa não carrega.");
+    });
+    mapa.on("load", function () { avisar(""); });
+  }
+  function mostrarNoMapa(pasta, titulo) {
+    pastaNoMapa = pasta;
+    Array.prototype.forEach.call(document.querySelectorAll(".busca"), function (b) { b.classList.remove("no-mapa"); });
+    fetch("/api/pontos?pasta=" + encodeURIComponent(pasta), { credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!mapa) return;
+        marcadores.forEach(function (m) { m.remove(); });
+        marcadores = [];
+        var pts = d.pontos || [], lim = new maplibregl.LngLatBounds();
+        pts.forEach(function (p) {
+          var caixa = el("div", "pino-wrap");
+          caixa.appendChild(el("div", "pino"));
+          if (p.zap) caixa.appendChild(el("span", "pino-selo"));
+          caixa.title = p.nome;
+          var conteudo = el("div");
+          conteudo.appendChild(el("span", "pop-nome", p.nome));
+          if (p.categoria) conteudo.appendChild(el("span", "pop-linha", p.categoria));
+          if (p.nota) conteudo.appendChild(el("span", "pop-linha", "★ " + String(p.nota).replace(".", ",")));
+          var pop = new maplibregl.Popup({ offset: 44, focusAfterOpen: false }).setDOMContent(conteudo);
+          marcadores.push(new maplibregl.Marker({ element: caixa, anchor: "bottom" }).setLngLat([p.lon, p.lat]).setPopup(pop).addTo(mapa));
+          lim.extend([p.lon, p.lat]);
+        });
+        document.getElementById("mapa-n").textContent = String(pts.length);
+        document.getElementById("mapa-titulo").textContent = pts.length ? titulo : "nenhuma empresa com localização";
+        if (pts.length) mapa.fitBounds(lim, { padding: { top: 90, bottom: 40, left: 40, right: 60 }, maxZoom: 15, duration: 700 });
+        atualizar();
+      });
+  }
+  iniciarMapa();
+
   function atualizar() {
     fetch("/api/estado", { credentials: "same-origin" }).then(function (r) { return r.json(); }).then(function (d) {
       desenharAtual(d.atual);
       desenharBuscas(d.buscas);
+      var pronta = d.atual && !d.atual.rodando && d.atual.resultado ? d.atual.pasta : null;
+      if (pronta && pronta !== ultimaPronta) { ultimaPronta = pronta; if (pronta !== pastaNoMapa) mostrarNoMapa(pronta, d.atual.consultas[0] || pronta); }
+      else if (!pastaNoMapa && d.buscas.length) mostrarNoMapa(d.buscas[0].pasta, d.buscas[0].consultas[0] || d.buscas[0].pasta);
       var rodando = d.atual && d.atual.rodando;
       document.getElementById("enviar").disabled = !!rodando;
       clearTimeout(timer);

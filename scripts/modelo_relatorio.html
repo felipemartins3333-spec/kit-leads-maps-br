@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; worker-src blob:; child-src blob:; img-src data: blob: https://tiles.openfreemap.org; connect-src https://tiles.openfreemap.org; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; worker-src blob:; child-src blob:; font-src data:; img-src data: blob: https://tiles.openfreemap.org; connect-src https://tiles.openfreemap.org; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
 <title>__TITULO__</title>
@@ -75,18 +75,31 @@ tbody tr:last-child td{border-bottom:0}
 .vazio{color:var(--suave);font-size:.9rem}
 .mais{display:flex;margin:18px auto 0}
 /* ---------- mapa ---------- */
-.conteudo.com-mapa{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:18px;align-items:start}
-.mapa-caixa{display:none;position:relative;border:1px solid var(--linha);border-radius:18px;overflow:hidden;box-shadow:var(--sombra);background:var(--papel-2)}
-.com-mapa .mapa-caixa{display:block;position:sticky;top:14px;height:calc(100vh - 28px);min-height:440px}
+.conteudo.com-mapa{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:18px;align-items:start}
+.mapa-caixa{display:none;position:relative;border:1px solid var(--linha);border-radius:22px;overflow:hidden;background:#E8E4DB;
+  box-shadow:0 1px 2px rgba(20,33,42,.05),0 28px 56px -30px rgba(20,33,42,.42)}
+.com-mapa .mapa-caixa{display:block;position:sticky;top:14px;height:calc(100vh - 28px);min-height:460px}
 #mapa{position:absolute;inset:0}
-.mapa-aviso{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;margin:0;padding:10px 12px;border-radius:12px;background:var(--papel);border:1px solid var(--linha);color:var(--suave);font-size:.88rem;box-shadow:var(--sombra)}
+.vidro{background:var(--papel);background:color-mix(in srgb,var(--papel) 84%,transparent);
+  -webkit-backdrop-filter:blur(14px) saturate(1.5);backdrop-filter:blur(14px) saturate(1.5);
+  border:1px solid color-mix(in srgb,var(--linha) 85%,transparent);box-shadow:0 10px 28px -14px rgba(10,20,25,.45)}
+.mapa-topo{position:absolute;top:14px;left:14px;z-index:4;display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:calc(100% - 80px)}
+.mapa-resumo{padding:10px 14px;border-radius:16px;font-size:.88rem;color:var(--suave)}
+.mapa-resumo b{font:600 1.2rem/1 var(--serifa);color:var(--tinta);margin-right:5px}
+.legenda{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:7px;font-size:.76rem}
+.legenda span{display:inline-flex;align-items:center;gap:6px}
+.legenda i{display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.estilos{display:inline-flex;padding:4px;border-radius:13px;gap:2px}
+.estilos button{all:unset;cursor:pointer;padding:6px 13px;border-radius:9px;font:600 .8rem/1.1 var(--sans);color:var(--suave);transition:background .15s,color .15s}
+.estilos button[aria-pressed=true]{background:var(--marca);color:var(--marca-texto)}
+.estilos button:focus-visible{outline:3px solid var(--foco);outline-offset:2px}
+.mapa-aviso{position:absolute;left:14px;right:14px;bottom:14px;z-index:4;margin:0;padding:11px 14px;border-radius:14px;background:var(--papel);border:1px solid var(--linha);color:var(--suave);font-size:.88rem;box-shadow:var(--sombra)}
 .com-mapa .lista{background:transparent;border:0;box-shadow:none;border-radius:0;overflow:visible}
 .com-mapa table,.com-mapa tbody,.com-mapa tr,.com-mapa td{display:block;width:100%}
 .com-mapa thead{display:none}
-.com-mapa tbody tr{background:var(--papel);border:1px solid var(--linha);border-radius:16px;margin:0 0 10px;padding:6px 0;box-shadow:var(--sombra);cursor:pointer;transition:border-color .15s,box-shadow .15s}
-.com-mapa tbody tr:hover{background:var(--papel);border-color:var(--marca)}
+.com-mapa tbody tr{background:var(--papel);border:1px solid var(--linha);border-radius:18px;margin:0 0 10px;padding:6px 0;box-shadow:var(--sombra);cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
+.com-mapa tbody tr:hover,.com-mapa tbody tr.realce{background:var(--papel);border-color:var(--marca);transform:translateY(-1px)}
 .com-mapa td{border:0;padding:5px 16px}
-.com-mapa td[data-rotulo]::before{content:attr(data-rotulo);display:block;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--suave);margin-bottom:2px}
 .com-mapa .endereco{max-width:none}
 .tem-mapa .ferramentas{position:static}
 .com-mapa tbody tr{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;padding:10px 0}
@@ -101,22 +114,57 @@ tbody tr:last-child td{border-bottom:0}
 .com-mapa td:nth-child(3){grid-column:1/-1;grid-row:3;padding-top:8px}
 .com-mapa td:nth-child(5){grid-column:1/-1;grid-row:4;font-size:.84rem}
 .com-mapa td.sem-rotulo.vazio{grid-column:1/-1}
-tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--marca)}
-.pino-wrap{width:30px;height:38px;display:flex;align-items:flex-start;justify-content:center;cursor:pointer}
-.pino{position:relative;width:26px;height:26px;margin-top:2px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--marca);border:2px solid #fff;box-shadow:0 3px 8px rgba(10,20,25,.35);transition:transform .15s}
-.pino::after{content:"";position:absolute;width:8px;height:8px;border-radius:50%;background:#fff;top:7px;left:7px}
-.pino.zap{background:var(--zap)}
-.pino-wrap:hover .pino,.pino.ativo{transform:rotate(-45deg) scale(1.25)}
-.pino.ativo{box-shadow:0 0 0 4px var(--marca-suave),0 3px 8px rgba(10,20,25,.35)}
-.maplibregl-popup-content{border-radius:14px;padding:12px 14px 12px;font:14px/1.45 var(--sans);color:var(--tinta);background:var(--papel);box-shadow:0 10px 30px -10px rgba(10,20,25,.45)}
+tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--marca),0 14px 30px -18px rgba(15,107,98,.55)!important}
+/* alfinetes, desenho do kit */
+.pino-wrap{position:relative;width:34px;height:46px;display:flex;justify-content:center;cursor:pointer}
+.pino{position:relative;width:30px;height:30px;margin-top:3px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+  background:linear-gradient(135deg,#178A80,#0A4A44);border:2.5px solid #fff;box-shadow:0 5px 12px rgba(8,20,22,.42);
+  transition:transform .2s cubic-bezier(.2,.8,.2,1),background .2s}
+.pino::after{content:"";position:absolute;width:9px;height:9px;border-radius:50%;background:#fff;top:8px;left:8px}
+.pino-selo{position:absolute;top:0;right:1px;width:13px;height:13px;border-radius:50%;background:#22A35A;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.pino-wrap:hover .pino,.pino-wrap.realce .pino{transform:rotate(-45deg) scale(1.15)}
+.pino-wrap.ativo{z-index:6}
+.pino-wrap.ativo .pino{transform:rotate(-45deg) scale(1.32);background:linear-gradient(135deg,#E8590C,#B23A06)}
+.pino-rotulo{position:absolute;left:31px;top:5px;display:none;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  padding:4px 10px;border-radius:10px;font:600 .78rem/1.25 var(--sans);color:var(--tinta);background:var(--papel);
+  border:1px solid var(--linha);box-shadow:0 6px 14px -6px rgba(10,20,25,.45);pointer-events:none}
+.zoom-perto .pino-rotulo,.pino-wrap.realce .pino-rotulo,.pino-wrap.ativo .pino-rotulo{display:block}
+.grupo{display:grid;place-items:center;border-radius:50%;cursor:pointer;color:#fff;font:700 .92rem/1 var(--sans);
+  background:radial-gradient(circle at 32% 28%,#1E9C91,#0A4A44);border:2.5px solid #fff;
+  box-shadow:0 0 0 7px rgba(15,107,98,.2),0 8px 18px rgba(8,20,22,.38);transition:transform .15s}
+.grupo:hover,.grupo.realce{transform:scale(1.1)}
+/* cartão no mapa */
+.maplibregl-popup{z-index:8}
+.maplibregl-popup-content{border-radius:18px;padding:0;overflow:hidden;font:14px/1.45 var(--sans);color:var(--tinta);background:var(--papel);
+  box-shadow:0 24px 48px -16px rgba(10,20,25,.55),0 2px 6px rgba(10,20,25,.12)}
 .maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:var(--papel)}
 .maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:var(--papel)}
 .maplibregl-popup-anchor-left .maplibregl-popup-tip{border-right-color:var(--papel)}
 .maplibregl-popup-anchor-right .maplibregl-popup-tip{border-left-color:var(--papel)}
-.maplibregl-popup-close-button{font-size:18px;padding:2px 8px;color:var(--suave)}
-.popup-nome{display:block;font-weight:600;padding-right:18px}
-.popup-linha{display:block;color:var(--suave);font-size:.86rem}
-.popup .acoes{margin-top:10px}
+.maplibregl-popup-close-button{top:8px;right:8px;width:28px;height:28px;border-radius:50%;font-size:18px;line-height:1;color:var(--suave)}
+.maplibregl-popup-close-button:hover{background:var(--papel-2)}
+.cartao-mapa{width:288px}
+.cartao-mapa .topo-c{display:flex;gap:12px;align-items:center;padding:16px 40px 10px 16px}
+.cartao-mapa .avatar{width:42px;height:42px;border-radius:13px}
+.cartao-mapa .nome-c{font:600 1.02rem/1.25 var(--serifa)}
+.cartao-mapa .cat-c{color:var(--suave);font-size:.82rem;margin-top:2px}
+.cartao-mapa .info-c{display:flex;flex-wrap:wrap;gap:4px 14px;padding:0 16px 12px;font-size:.86rem;color:var(--suave)}
+.cartao-mapa .info-c b{color:var(--tinta);font-weight:600}
+.cartao-mapa .info-c .estrela{color:var(--ouro)}
+.acoes-c{display:flex;border-top:1px solid var(--linha);background:var(--papel-2)}
+.acoes-c>*{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 4px;color:var(--marca-forte);
+  font-size:.76rem;font-weight:600;text-decoration:none;transition:background .15s}
+.acoes-c>*+*{border-left:1px solid var(--linha)}
+.acoes-c a:hover{background:var(--marca-suave)}
+.acoes-c svg{width:19px;height:19px}
+.acoes-c .zap{color:var(--zap-forte)}
+.acoes-c .demo{opacity:.5;cursor:not-allowed}
+/* controles do mapa no estilo do kit */
+.maplibregl-ctrl-top-right{top:6px;right:6px}
+.maplibregl-ctrl-group{border-radius:13px!important;overflow:hidden;border:1px solid var(--linha);box-shadow:0 10px 24px -12px rgba(10,20,25,.5)!important}
+.maplibregl-ctrl-group button{width:36px;height:36px}
+.maplibregl-ctrl-group button svg{display:block;width:18px;height:18px;margin:auto;color:#1C2A32}
+.maplibregl-ctrl-attrib{font-size:11px}
 .escondido{display:none!important}
 @media (max-width:1100px){.conteudo.com-mapa{grid-template-columns:1fr}.com-mapa .mapa-caixa{position:relative;top:0;height:62vh;min-height:360px}}
 @media (max-width:980px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.linha-campos{grid-template-columns:1fr 1fr}.campo.grande{grid-column:1/-1}}
@@ -151,7 +199,7 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
   <header class="topo">
     <div class="marca">__MARCA__<span>Kit de Leads · Google Maps</span></div>
     <h1>__TITULO__</h1>
-    <p class="sub">Gerado em __GERADO__ · <span id="total-geral">__TOTAL__</span> empresas · arquivo local, funciona sem internet</p>
+    <p class="sub">Gerado em __GERADO__ · <span id="total-geral">__TOTAL__</span> empresas · arquivo no seu computador · a lista funciona sem internet</p>
     __CONSULTAS__
     <p class="aviso" id="aviso-demo" hidden><strong>Dados fictícios de demonstração.</strong> Nenhuma empresa, telefone ou e-mail aqui existe. O botão de WhatsApp está desativado de propósito nesta demonstração.</p>
   </header>
@@ -209,6 +257,14 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
   </div>
   <aside class="mapa-caixa" id="mapa-caixa" aria-label="Mapa das empresas">
     <div id="mapa"></div>
+    <div class="mapa-topo">
+      <div class="vidro mapa-resumo"><b id="mapa-n">0</b>empresas no mapa
+        <div class="legenda"><span><i style="background:#0F6B62"></i>empresa</span><span><i style="background:#22A35A"></i>tem WhatsApp</span><span><i style="background:#D9480F"></i>selecionada</span></div>
+      </div>
+      <div class="vidro estilos" role="group" aria-label="Estilo do mapa">
+        <button type="button" data-estilo="liberty" aria-pressed="true">Ruas</button><button type="button" data-estilo="positron" aria-pressed="false">Claro</button>
+      </div>
+    </div>
     <p class="mapa-aviso" id="mapa-aviso" hidden></p>
   </aside>
   </div>
@@ -320,6 +376,8 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
       if (!conteudo.classList.contains("com-mapa") || ev.target.closest("a")) return;
       selecionar(l, true);
     });
+    tr.addEventListener("mouseenter", function () { if (mapa) realcar(l, true); });
+    tr.addEventListener("mouseleave", function () { if (mapa) realcar(l, false); });
 
     var tdNome = celula(null);
     var bloco = el("div", "empresa");
@@ -425,10 +483,12 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
 
   // ---------------- mapa (MapLibre + OpenFreeMap) ----------------
   var conteudo = document.getElementById("conteudo");
+  var caixaMapa = document.getElementById("mapa-caixa");
   var botaoMapa = document.getElementById("alternar-mapa");
   var avisoMapa = document.getElementById("mapa-aviso");
-  var mapa = null, marcadores = [], selecionada = null;
+  var mapa = null, marcadores = [], selecionada = null, popup = null, estiloAtual = "liberty";
   var MAPA_OK = typeof maplibregl !== "undefined";
+  var ESTILOS = "https://tiles.openfreemap.org/styles/";
   function coords(l) {
     var a = parseFloat(l.latitude), o = parseFloat(l.longitude);
     if (!isFinite(a) || !isFinite(o) || Math.abs(a) > 90 || Math.abs(o) > 180 || (a === 0 && o === 0)) return null;
@@ -437,65 +497,153 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
   var COM_COORDS = LINHAS.filter(coords).length;
   if (!COM_COORDS) botaoMapa.classList.add("escondido");
   function avisar(texto) { avisoMapa.textContent = texto; avisoMapa.hidden = !texto; }
-  function conteudoPopup(l) {
-    var c = el("div", "popup");
-    c.appendChild(el("span", "popup-nome", l.nome));
-    if (l.categoria) c.appendChild(el("span", "popup-linha", l.categoria));
-    if (l.telefone) c.appendChild(el("span", "popup-linha", l.telefone));
-    if (l._nota) c.appendChild(el("span", "popup-linha", "★ " + String(l.nota).replace(".", ",") +
-      (l._aval ? " · " + l._aval.toLocaleString("pt-BR") + " avaliações" : "")));
-    var ac = el("div", "acoes");
-    if (temZap(l)) {
-      if (ehDemo(l)) ac.appendChild(acao("zap demo", "conversa", "WhatsApp (demo)", null));
-      else ac.appendChild(acao("zap", "conversa", "WhatsApp", l.whatsapp));
+
+  function acaoCartao(classe, nomeIcone, texto, href, externo) {
+    var a = el(href ? "a" : "span", classe || null);
+    a.appendChild(icone(nomeIcone));
+    a.appendChild(el("span", null, texto));
+    if (href) { a.href = href; if (externo) { a.target = "_blank"; a.rel = "noopener noreferrer"; } }
+    else a.setAttribute("aria-disabled", "true");
+    return a;
+  }
+  function conteudoCartao(l) {
+    var c = el("div", "cartao-mapa"), demo = ehDemo(l);
+    var topo = el("div", "topo-c");
+    topo.appendChild(el("span", "avatar " + corAvatar(l.nome), iniciais(l.nome)));
+    var tx = el("div");
+    tx.appendChild(el("div", "nome-c", l.nome));
+    if (l.categoria) tx.appendChild(el("div", "cat-c", l.categoria));
+    topo.appendChild(tx);
+    c.appendChild(topo);
+    var info = el("div", "info-c");
+    if (l._nota) {
+      var s = el("span");
+      s.appendChild(el("span", "estrela", "★ "));
+      s.appendChild(el("b", null, String(l.nota).replace(".", ",")));
+      if (l._aval) s.appendChild(document.createTextNode(" · " + l._aval.toLocaleString("pt-BR") + " avaliações"));
+      info.appendChild(s);
     }
-    if (l.link_maps && RE_HTTP.test(l.link_maps)) ac.appendChild(acao("", "pino", "Rotas", l.link_maps, "Abrir no mapa"));
+    if (l.telefone) info.appendChild(el("span", null, l.telefone));
+    if (info.childNodes.length) c.appendChild(info);
+    var ac = el("div", "acoes-c");
+    if (temZap(l)) ac.appendChild(acaoCartao("zap" + (demo ? " demo" : ""), "conversa", "WhatsApp", demo ? null : l.whatsapp, true));
+    if (l.telefone) {
+      var dig = l.telefone.replace(/\D/g, "");
+      var tel = l.tipo_telefone === "0800" ? dig : "+55" + dig;
+      ac.appendChild(acaoCartao(demo ? "demo" : "", "telefone", "Ligar", demo ? null : "tel:" + tel, false));
+    }
+    if (l.link_maps && RE_HTTP.test(l.link_maps)) ac.appendChild(acaoCartao("", "pino", "Rotas", l.link_maps, true));
+    if (l.site && RE_HTTP.test(l.site)) ac.appendChild(acaoCartao("", "globo", "Site", l.site, true));
     if (ac.childNodes.length) c.appendChild(ac);
     return c;
   }
+  function abrirCartao(l) {
+    var c = coords(l);
+    if (!mapa || !c) return;
+    if (!popup) popup = new maplibregl.Popup({ offset: 48, maxWidth: "320px", focusAfterOpen: false });
+    popup.setLngLat(c).setDOMContent(conteudoCartao(l)).addTo(mapa);
+  }
+  function realcar(l, sim) {
+    if (l._tr) l._tr.classList.toggle("realce", sim);
+    if (l._caixa) l._caixa.classList.toggle("realce", sim);
+    else if (l._grupo) l._grupo.classList.toggle("realce", sim);
+  }
   function selecionar(l, daLista) {
-    if (selecionada && selecionada._pino) selecionada._pino.classList.remove("ativo");
-    if (selecionada && selecionada._tr) selecionada._tr.classList.remove("ativo");
+    if (selecionada) {
+      if (selecionada._tr) selecionada._tr.classList.remove("ativo");
+      if (selecionada._caixa) selecionada._caixa.classList.remove("ativo");
+    }
     selecionada = l;
     if (l._tr) { l._tr.classList.add("ativo"); if (!daLista) l._tr.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
-    if (l._pino) l._pino.classList.add("ativo");
-    if (daLista && mapa && l._marcador) {
-      mapa.flyTo({ center: l._marcador.getLngLat(), zoom: Math.max(mapa.getZoom(), 14.5), duration: 700 });
-      if (!l._marcador.getPopup().isOpen()) l._marcador.togglePopup();
+    if (l._caixa) l._caixa.classList.add("ativo");
+    var c = coords(l);
+    if (daLista && mapa && c) {
+      mapa.flyTo({ center: c, zoom: Math.max(mapa.getZoom(), 15.6), duration: 750, essential: true });
+      mapa.once("moveend", function () { abrirCartao(l); });
     }
   }
-  function desenharMarcadores(ajustar) {
-    if (!mapa) return;
-    marcadores.forEach(function (m) { m.remove(); });
-    marcadores = [];
-    var limites = new maplibregl.LngLatBounds(), n = 0;
+  // Agrupa alfinetes muito próximos na tela (vira uma bolha com o número).
+  function agrupar() {
+    var raio = mapa.getZoom() >= 16.5 ? 0 : 46, grupos = [];
     atuais.forEach(function (l) {
       var c = coords(l);
       if (!c) return;
-      var caixa = el("div", "pino-wrap"), pino = el("div", "pino" + (temZap(l) ? " zap" : ""));
-      caixa.appendChild(pino);
-      caixa.title = l.nome;
-      caixa.setAttribute("aria-label", l.nome);
-      var popup = new maplibregl.Popup({ offset: 30, maxWidth: "290px", focusAfterOpen: false }).setDOMContent(conteudoPopup(l));
-      var mk = new maplibregl.Marker({ element: caixa, anchor: "bottom" }).setLngLat(c).setPopup(popup).addTo(mapa);
-      caixa.addEventListener("click", function () { selecionar(l, false); });
-      l._marcador = mk; l._pino = pino;
-      marcadores.push(mk); limites.extend(c); n++;
+      var p = mapa.project(c), g = null;
+      for (var i = 0; i < grupos.length && raio; i++) {
+        var dx = grupos[i].p.x - p.x, dy = grupos[i].p.y - p.y;
+        if (dx * dx + dy * dy < raio * raio) { g = grupos[i]; break; }
+      }
+      if (g) g.itens.push({ l: l, c: c }); else grupos.push({ p: p, itens: [{ l: l, c: c }] });
     });
-    if (ajustar && n) mapa.fitBounds(limites, { padding: 70, maxZoom: 15, duration: ajustar === "suave" ? 600 : 0 });
+    return grupos;
   }
+  function desenharMarcadores() {
+    if (!mapa) return;
+    marcadores.forEach(function (m) { m.remove(); });
+    marcadores = [];
+    var n = 0;
+    agrupar().forEach(function (g) {
+      n += g.itens.length;
+      if (g.itens.length === 1) {
+        var l = g.itens[0].l;
+        var caixa = el("div", "pino-wrap" + (selecionada === l ? " ativo" : ""));
+        caixa.appendChild(el("div", "pino"));
+        if (temZap(l)) caixa.appendChild(el("span", "pino-selo"));
+        caixa.appendChild(el("span", "pino-rotulo", l.nome));
+        caixa.setAttribute("role", "button");
+        caixa.setAttribute("aria-label", l.nome);
+        caixa.addEventListener("click", function (ev) { ev.stopPropagation(); selecionar(l, false); abrirCartao(l); });
+        caixa.addEventListener("mouseenter", function () { realcar(l, true); });
+        caixa.addEventListener("mouseleave", function () { realcar(l, false); });
+        l._caixa = caixa; l._grupo = null;
+        marcadores.push(new maplibregl.Marker({ element: caixa, anchor: "bottom" }).setLngLat(g.itens[0].c).addTo(mapa));
+      } else {
+        var qtd = g.itens.length, tam = Math.min(66, 36 + Math.round(Math.log(qtd) / Math.LN2 * 7));
+        var bolha = el("div", "grupo", String(qtd));
+        bolha.style.width = tam + "px"; bolha.style.height = tam + "px";
+        bolha.setAttribute("role", "button");
+        bolha.setAttribute("aria-label", qtd + " empresas aqui. Clique para aproximar.");
+        var lim = new maplibregl.LngLatBounds(), lon = 0, lat = 0;
+        g.itens.forEach(function (it) { lim.extend(it.c); lon += it.c[0]; lat += it.c[1]; it.l._caixa = null; it.l._grupo = bolha; });
+        bolha.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          mapa.fitBounds(lim, { padding: 90, maxZoom: 17, duration: 650 });
+        });
+        marcadores.push(new maplibregl.Marker({ element: bolha }).setLngLat([lon / qtd, lat / qtd]).addTo(mapa));
+      }
+    });
+    document.getElementById("mapa-n").textContent = String(n);
+  }
+  function ajustar(suave) {
+    if (!mapa) return;
+    var lim = new maplibregl.LngLatBounds(), n = 0;
+    atuais.forEach(function (l) { var c = coords(l); if (c) { lim.extend(c); n++; } });
+    if (n) mapa.fitBounds(lim, { padding: { top: 130, bottom: 60, left: 60, right: 60 }, maxZoom: 15, duration: suave ? 650 : 0 });
+  }
+  function ControleTodas() {}
+  ControleTodas.prototype.onAdd = function () {
+    var d = el("div", "maplibregl-ctrl maplibregl-ctrl-group"), b = el("button");
+    b.type = "button"; b.title = "Ver todas as empresas"; b.setAttribute("aria-label", "Ver todas as empresas");
+    b.appendChild(icone("centralizar"));
+    b.addEventListener("click", function () { ajustar(true); });
+    d.appendChild(b); this._d = d;
+    return d;
+  };
+  ControleTodas.prototype.onRemove = function () { this._d.remove(); };
   function iniciarMapa() {
     if (mapa) return;
     if (!MAPA_OK) { avisar("O mapa não carregou neste navegador. A lista continua funcionando."); return; }
-    var escuro = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
     try {
-      mapa = new maplibregl.Map({ container: "mapa", style: "https://tiles.openfreemap.org/styles/" + (escuro ? "dark" : "positron"),
-        center: [-47.9, -15.8], zoom: 3.6, attributionControl: { compact: true }, cooperativeGestures: false });
+      mapa = new maplibregl.Map({ container: "mapa", style: ESTILOS + estiloAtual, center: [-47.9, -15.8], zoom: 3.6,
+        attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false, touchPitch: false });
     } catch (e) {
       MAPA_OK = false; mapa = null;
       avisar("O mapa não abriu neste navegador (precisa de WebGL). A lista continua funcionando."); return;
     }
+    mapa.touchZoomRotate.disableRotation();
     mapa.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    mapa.addControl(new maplibregl.FullscreenControl({ container: caixaMapa }), "top-right");
+    mapa.addControl(new ControleTodas(), "top-right");
     var avisado = false;
     mapa.on("error", function () {
       if (avisado || mapa.isStyleLoaded()) return;
@@ -503,8 +651,22 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
       avisar("Sem internet, o fundo do mapa não carrega. Os alfinetes e a lista continuam funcionando.");
     });
     mapa.on("load", function () { avisar(""); });
-    desenharMarcadores(true);
+    mapa.on("zoomend", function () {
+      caixaMapa.classList.toggle("zoom-perto", mapa.getZoom() >= 15.4);
+      desenharMarcadores();
+    });
+    ajustar(false);
+    desenharMarcadores();
   }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-estilo]"), function (b) {
+    b.addEventListener("click", function () {
+      estiloAtual = b.getAttribute("data-estilo");
+      Array.prototype.forEach.call(document.querySelectorAll("[data-estilo]"), function (x) {
+        x.setAttribute("aria-pressed", x === b ? "true" : "false");
+      });
+      if (mapa) mapa.setStyle(ESTILOS + estiloAtual);
+    });
+  });
   function mostrarMapa(sim) {
     conteudo.classList.toggle("com-mapa", sim);
     document.body.classList.toggle("tem-mapa", sim);
@@ -512,7 +674,7 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
     document.getElementById("texto-mapa").textContent = sim ? "Ocultar mapa" : "Ver no mapa";
     if (!sim) return;
     iniciarMapa();
-    if (mapa) setTimeout(function () { mapa.resize(); desenharMarcadores(true); }, 60);
+    if (mapa) setTimeout(function () { mapa.resize(); ajustar(false); desenharMarcadores(); }, 60);
   }
   botaoMapa.addEventListener("click", function () { mostrarMapa(!conteudo.classList.contains("com-mapa")); });
 
@@ -530,7 +692,7 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
     var restam = atuais.length - estado.visiveis;
     botaoMais.classList.toggle("escondido", restam <= 0);
     if (restam > 0) botaoMais.textContent = "Mostrar mais (" + restam + " restantes)";
-    if (mapa) desenharMarcadores("suave");
+    if (mapa) { ajustar(true); desenharMarcadores(); }
     if (!atuais.length) {
       var tr = document.createElement("tr"), td = el("td", "sem-rotulo vazio");
       td.colSpan = 5; td.textContent = "Nenhuma empresa com esses filtros. Tente limpar os filtros.";

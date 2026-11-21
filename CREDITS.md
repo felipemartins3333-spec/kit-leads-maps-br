@@ -51,6 +51,12 @@ SOFTWARE.
   (aparece no canto do mapa e deve aparecer também em vídeos e materiais impressos):
   OpenFreeMap · © OpenMapTiles · Dados do © OpenStreetMap (openstreetmap.org/copyright).
 
+## Tipografia
+
+- **Inter** (© The Inter Project Authors, SIL Open Font License 1.1), pesos 400–700, subconjunto latin,
+  embutida nas páginas a partir de `scripts/vendor/inter/` (pacote `@fontsource/inter@5.3.0`, sem alterações).
+  Licença em `scripts/vendor/inter/LICENSE.txt`. Por estar embutida, nenhuma página do kit chama o Google Fonts.
+
 ## Sobre este repositório
 
 A camada brasileira (tudo fora da imagem do gosom) é de Felipe Martins Muniz, licenciada

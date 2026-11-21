@@ -161,19 +161,46 @@ def _busca_json(b):
             "planilha": f"/resultados/{b['pasta']}/leads-excel.csv" if b["tem_excel"] else None}
 
 
+PASTA_BUSCA = re.compile(r"^busca-\d{8}-\d{6}(-\d+)?$")
+
+
+def pontos_da_busca(pasta_resultados, nome, limite=3000):
+    """Coordenadas e o mínimo para o mapa da tela. Só aceita nomes de pasta de busca válidos."""
+    if not PASTA_BUSCA.match(nome or ""):
+        return None
+    arq = Path(pasta_resultados) / nome / "leads-tratados.csv"
+    if not arq.is_file():
+        return None
+    pontos = []
+    for l in resumo_teste.ler_linhas(arq)[:limite]:
+        try:
+            lat, lon = float(l.get("latitude") or ""), float(l.get("longitude") or "")
+        except ValueError:
+            continue
+        if not (-90 <= lat <= 90 and -180 <= lon <= 180) or (lat == 0 and lon == 0):
+            continue
+        pontos.append({"nome": l.get("nome", ""), "categoria": l.get("categoria", ""),
+                       "zap": (l.get("whatsapp") or "").startswith("https://wa.me/"),
+                       "nota": l.get("nota", ""), "lat": lat, "lon": lon})
+    return pontos
+
+
 def pagina(token):
     trocas = [("__ESTILO_BASE__", visual.ESTILO_BASE), ("__MARCA__", visual.MARCA_SVG),
               ("__ICONES_JSON__", gerar_relatorio.json_seguro_para_html(visual.ICONES)),
               ("__ICONE_BUSCA__", visual.icone_svg("busca")),
-              ("__TOKEN__", token)]
+              ("__TOKEN__", token),
+              ("__MAPLIBRE_CSS__", (gerar_relatorio.VENDOR / "maplibre-gl.css").read_text(encoding="utf-8")),
+              ("__MAPLIBRE_JS__", (gerar_relatorio.VENDOR / "maplibre-gl.js").read_text(encoding="utf-8"))]
     html = MODELO
     for a, b in trocas:
         html = html.replace(a, b)
     return html
 
 
-CSP_APP = ("default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; "
-           "img-src data:; form-action 'none'; base-uri 'none'; frame-ancestors 'none'")
+CSP_APP = ("default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; worker-src blob:; child-src blob:; "
+           "font-src data:; connect-src 'self' https://tiles.openfreemap.org; img-src data: blob: https://tiles.openfreemap.org; "
+           "form-action 'none'; base-uri 'none'; frame-ancestors 'none'")
 
 
 def criar_servidor(estado, token, porta=PORTA_PADRAO, hosts_extras=()):
@@ -241,6 +268,12 @@ def criar_servidor(estado, token, porta=PORTA_PADRAO, hosts_extras=()):
                 return self._responder(200, pagina(token), extras={"Content-Security-Policy": CSP_APP})
             if partes.path == "/api/estado":
                 return self._json(200, estado.status())
+            if partes.path == "/api/pontos":
+                nome = (parse_qs(partes.query).get("pasta") or [""])[0]
+                pontos = pontos_da_busca(estado.pasta_resultados, nome)
+                if pontos is None:
+                    return self._json(404, {"erro": "Busca não encontrada."})
+                return self._json(200, {"pasta": nome, "pontos": pontos})
             if partes.path.startswith("/resultados/"):
                 return self._arquivo(unquote(partes.path[len("/resultados/"):]))
             self._responder(404, "Não encontrado")

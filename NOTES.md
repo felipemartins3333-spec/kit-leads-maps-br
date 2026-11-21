@@ -463,3 +463,25 @@ e `testar`. Não precisou instalar nada no sistema nem pedir confirmação.
 - **Demo:** coordenadas fictícias espalhadas no centro de Vitória da Conquista (antes todas iguais).
 - **Não verificado:** o fundo do mapa (a sessão de desenvolvimento não alcança tiles.openfreemap.org);
   alfinetes, cartões, filtros e o aviso "sem internet" foram verificados no Chromium local.
+
+## Rodada 14 (2026-11-21) — visual premium com o mapa de verdade
+
+- Ambiente novo "Kit de leads (mapas)" (pessoal; os 2 repositórios), aprovado pelo Felipe, liberando só
+  `tiles.openfreemap.org` para eu VER o mapa enquanto ajusto. A 1ª proposta foi recusada por falta de
+  explicação; refeita depois que ele entendeu.
+- **Referência (vzbaggio, só observação):** Leaflet + tiles diretos do OpenStreetMap (uso que a política do
+  OSM restringe para apps distribuídos), fonte Inter via Google Fonts e as cores de marca do Google
+  (#1a73e8, #34a853, #ea4335, #fbbc04) com fundos estilo Apple. **Não copiado:** paleta e código.
+  **Aproveitado como ideia:** a nitidez da Inter → embutida (OFL), sem chamar o Google.
+- **Mapa:** estilo **Liberty** (colorido; ruas, parques, água, bairros, POIs) como padrão + botão "Ruas ·
+  Claro" (Positron). Agrupamento próprio em tela (bolha com número; clique aproxima; desfaz a partir do
+  zoom 16,5), alfinete do kit com selo verde de WhatsApp, selecionado em laranja com nome ao lado, nomes
+  ao aproximar (≥ 15,4), passar o mouse na lista destaca o alfinete/bolha, cartão com Ligar/WhatsApp/Rotas/
+  Site, painel de vidro com contagem e legenda, controles de zoom, tela cheia e "centralizar".
+  Verificado com o fundo real no Chromium (prints).
+- **Tela de busca:** mapa grande com as empresas da busca mais recente/escolhida (`/api/pontos` devolve só
+  nome, categoria, nota, WhatsApp sim/não e coordenadas; só aceita nome de pasta de busca válido).
+- CSPs: relatório, painel e tela só falam com `tiles.openfreemap.org`; `font-src data:` para a Inter.
+- Correções vistas nos prints: regras dos cartões compactos que eu tinha apagado sem querer; barra de
+  filtros cobrindo o mapa; ícone "ver todas" parecido com "tela cheia"; chave do e-mail desalinhada
+  (`.passo label` anulava o flex); texto "funciona sem internet" ajustado.

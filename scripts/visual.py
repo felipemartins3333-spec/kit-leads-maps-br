@@ -3,12 +3,14 @@
 Usado pelo relatório (gerar_relatorio.py) e pelo painel de buscas (painel.py). Nada aqui busca
 fonte, imagem ou script na internet: tudo fica dentro do próprio arquivo HTML.
 """
+import base64
 import html
+from pathlib import Path
 
 ESTILO_BASE = """
 :root{
   --serifa:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --fundo:#F5F2EC; --fundo-vidro:rgba(245,242,236,.9); --papel:#FFFFFF; --papel-2:#FAF8F4;
   --tinta:#14212A; --suave:#56656D; --linha:#E7E1D6; --borda-campo:#D6CEC0; --trilho:#EEE8DD;
   --marca:#0F6B62; --marca-forte:#0B544D; --marca-suave:#E3F0ED; --marca-texto:#FFFFFF;
@@ -31,7 +33,8 @@ ESTILO_BASE = """
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;min-height:100vh;color:var(--tinta);font:16px/1.55 var(--sans);
+body{margin:0;min-height:100vh;color:var(--tinta);font:16px/1.55 var(--sans);font-feature-settings:"cv11","ss01";
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
   background:radial-gradient(1100px 420px at 8% -8%,var(--brilho),transparent 62%),var(--fundo);background-color:var(--fundo)}
 .pagina{max-width:1200px;margin:0 auto;padding:30px 20px 56px}
 .marca{display:flex;align-items:center;gap:10px;color:var(--marca-forte);font-size:.76rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
@@ -72,6 +75,10 @@ ICONES = {
     "limpar": ["M6 6l12 12", "M18 6 6 18"],
     "planilha": ["M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z", "M4 9.5h16M4 14.5h16M10 4v16"],
     "relogio": ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", "M12 7.5V12l3 2"],
+    "telefone": ["M6.6 3.5h2.8l1.4 3.8-1.9 1.3a10.5 10.5 0 0 0 5.5 5.5l1.3-1.9 3.8 1.4v2.8a2 2 0 0 1-2.2 2A16 16 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2z"],
+    "expandir": ["M4 9V4h5", "M20 9V4h-5", "M4 15v5h5", "M20 15v5h-5"],
+    "centralizar": ["M12 19.5a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15z", "M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3",
+                    "M12 14.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z"],
     "abrir": ["M14 4h6v6", "M20 4l-9 9", "M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"],
 }
 
@@ -86,3 +93,19 @@ def icone_svg(nome):
     caminhos = "".join(f'<path d="{html.escape(d)}"/>' for d in ICONES[nome])
     return ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" '
             f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{caminhos}</svg>')
+
+
+def _fontes_inter():
+    """Fonte Inter (OFL-1.1) embutida em base64: nítida e igual em qualquer computador, sem Google Fonts."""
+    pasta = Path(__file__).resolve().parent / "vendor" / "inter"
+    regras = []
+    for peso in (400, 500, 600, 700):
+        arq = pasta / f"inter-latin-{peso}-normal.woff2"
+        if arq.exists():
+            dados = base64.b64encode(arq.read_bytes()).decode("ascii")
+            regras.append("@font-face{font-family:\"Inter\";font-style:normal;font-weight:%d;font-display:swap;"
+                          "src:url(data:font/woff2;base64,%s) format(\"woff2\")}" % (peso, dados))
+    return "\n".join(regras)
+
+
+ESTILO_BASE = _fontes_inter() + "\n" + ESTILO_BASE

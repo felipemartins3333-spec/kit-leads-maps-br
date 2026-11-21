@@ -149,6 +149,25 @@ class TesteServidor(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("attachment", cab["Content-Disposition"])
 
+    def test_pontos_do_mapa(self):
+        status, corpo, _ = self.pedir("GET", "/api/pontos?pasta=busca-20261119-101500")
+        self.assertEqual(status, 200)
+        d = json.loads(corpo)
+        self.assertTrue(d["pontos"])
+        self.assertEqual(set(d["pontos"][0]), {"nome", "categoria", "zap", "nota", "lat", "lon"},
+                         "o mapa da tela só recebe o mínimo (sem telefone, e-mail ou site)")
+        for ruim in ("../busca-20261119-101500", "busca-x", "", "busca-20261119-101500/../..", "%2e%2e"):
+            with self.subTest(pasta=ruim):
+                self.assertEqual(self.pedir("GET", "/api/pontos?pasta=" + ruim)[0], 404)
+        self.assertEqual(self.pedir("GET", "/api/pontos?pasta=busca-20261119-101500", cookie=False)[0], 403)
+
+    def test_csp_da_tela_so_libera_o_mapa(self):
+        _, _, cab = self.pedir("GET", "/")
+        csp = cab["Content-Security-Policy"]
+        import re as _re
+        self.assertEqual(set(_re.findall(r"https://[^ ;]+", csp)), {"https://tiles.openfreemap.org"})
+        self.assertIn("font-src data:", csp)
+
     def test_link_no_codespace(self):
         from unittest import mock
         amb = {"CODESPACES": "true", "CODESPACE_NAME": "curly-enigma",
