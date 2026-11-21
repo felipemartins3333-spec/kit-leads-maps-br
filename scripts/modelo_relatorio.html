@@ -11,9 +11,9 @@
 <style>
 __ESTILO_BASE__
 /* ---------- relatório ---------- */
-.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:22px 0 0}
-.kpi{position:relative;display:flex;flex-direction:column;background:var(--papel);border:1px solid var(--linha);border-radius:16px;padding:14px 16px 16px;box-shadow:var(--sombra)}
-.kpi-valor{display:block;font:600 1.75rem/1.1 var(--serifa);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 22px;margin:28px 0 0}
+.kpi{position:relative;display:flex;flex-direction:column;padding:12px 0 4px;border-top:2px solid var(--tinta)}
+.kpi-valor{display:block;font:800 2rem/1.05 var(--serifa);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .kpi-pct{font:500 .95rem/1 var(--sans);color:var(--suave)}
 .kpi-rotulo{display:block;margin:4px 0 12px;color:var(--suave);font-size:.86rem;line-height:1.3}
 .kpi-barra{display:block;height:4px;margin-top:auto;border-radius:99px;background:var(--trilho);overflow:hidden}
@@ -197,9 +197,9 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
 <body>
 <div class="pagina">
   <header class="topo">
-    <div class="marca">__MARCA__<span>Kit de Leads · Google Maps</span></div>
+    <div class="marca">__MARCA__<span>Kit de Leads</span></div>
     <h1>__TITULO__</h1>
-    <p class="sub">Gerado em __GERADO__ · <span id="total-geral">__TOTAL__</span> empresas · arquivo no seu computador · a lista funciona sem internet</p>
+    <p class="sub"><span id="total-geral">__TOTAL__</span> empresas, lista gerada em __GERADO__. O arquivo fica no seu computador e a lista funciona sem internet.</p>
     __CONSULTAS__
     <p class="aviso" id="aviso-demo" hidden><strong>Dados fictícios de demonstração.</strong> Nenhuma empresa, telefone ou e-mail aqui existe. O botão de WhatsApp está desativado de propósito nesta demonstração.</p>
   </header>

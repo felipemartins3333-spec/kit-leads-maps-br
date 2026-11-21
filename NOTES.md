@@ -525,3 +525,15 @@ e `testar`. Não precisou instalar nada no sistema nem pedir confirmação.
 - Verificado: 105 testes; tela no Chromium (ponto, raio, modo rápido habilita só com ponto, Apagar).
   **Não verificado:** nenhuma dessas opções numa coleta real (esta sessão não acessa o Google), nem a
   procura de redes em sites reais (a rede desta sessão é limitada).
+
+## Rodada 17 (2026-11-21) — visual novo com a skill frontend-design (oficial da Anthropic)
+
+- design-sync NÃO se aplica (serve para enviar biblioteca de componentes React ao Claude Design).
+- Plano: "mapa de campo". Fundo Terra #EEF1EC, Papel #FFF, Grafite #1B2622, Rota #0F6B62, Alfinete #C2410C
+  (só no botão de buscar). Revisão contra os clichês de página gerada por IA: saiu o fundo creme + título
+  serifado, o rótulo em MAIÚSCULAS, os cartões iguais com sombra (KPIs viram números com fio em cima) e a
+  mancha de degradê.
+- Fonte: Archivo (Omnibus-Type, OFL-1.1, @fontsource-variable/archivo@5.3.0, sha512 conferido), um arquivo
+  variável com duas famílias: "Archivo" (texto) e "Archivo Largo" (títulos, largura 118%). Inter removida.
+- Tela: o mapa é a peça principal (metade direita, altura total, fixo); formulário numa coluna à esquerda; no
+  celular o mapa fica em cima. Verificado com prints (computador e iPhone 13) e 105 testes.

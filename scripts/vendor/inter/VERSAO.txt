@@ -1,3 +1,0 @@
-Inter (npm: @fontsource/inter@5.3.0), subconjunto latin, pesos 400/500/600/700
-sha512 do pacote: RofMylZmjlJEfELXeNHFWBRcSs75rGU/6bV2S2jfnvv/3rPXPGe0LgUJTklcHZ9lM4OZmAVFhcJPnACfb91A3g==
-Licença: SIL Open Font License 1.1 (ver LICENSE.txt). Arquivos copiados sem alteração.

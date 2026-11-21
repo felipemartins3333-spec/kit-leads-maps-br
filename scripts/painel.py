@@ -144,7 +144,7 @@ def gerar_html(buscas, comando_python="python3"):
 <body>
 <div class="pagina">
   <header class="topo">
-    <div class="marca">{visual.MARCA_SVG}<span>Kit de Leads · Google Maps</span></div>
+    <div class="marca">{visual.MARCA_SVG}<span>Kit de Leads</span></div>
     <h1>Suas buscas</h1>
     <p class="sub">Todas as listas que você montou com o kit, da mais nova para a mais antiga.</p>
   </header>

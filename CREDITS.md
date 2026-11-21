@@ -53,9 +53,10 @@ SOFTWARE.
 
 ## Tipografia
 
-- **Inter** (© The Inter Project Authors, SIL Open Font License 1.1), pesos 400–700, subconjunto latin,
-  embutida nas páginas a partir de `scripts/vendor/inter/` (pacote `@fontsource/inter@5.3.0`, sem alterações).
-  Licença em `scripts/vendor/inter/LICENSE.txt`. Por estar embutida, nenhuma página do kit chama o Google Fonts.
+- **Archivo** (© The Archivo Project Authors, Omnibus-Type; SIL Open Font License 1.1), fonte variável
+  (peso e largura), subconjunto latin, embutida nas páginas a partir de `scripts/vendor/archivo/` (pacote
+  `@fontsource-variable/archivo@5.3.0`, sem alterações). Licença em `scripts/vendor/archivo/LICENSE`. Por estar
+  embutida, nenhuma página do kit chama o Google Fonts.
 
 ## Sobre este repositório
 

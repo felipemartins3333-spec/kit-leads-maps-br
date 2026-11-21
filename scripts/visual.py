@@ -9,37 +9,39 @@ from pathlib import Path
 
 ESTILO_BASE = """
 :root{
-  --serifa:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
-  --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  --fundo:#F5F2EC; --fundo-vidro:rgba(245,242,236,.9); --papel:#FFFFFF; --papel-2:#FAF8F4;
-  --tinta:#14212A; --suave:#56656D; --linha:#E7E1D6; --borda-campo:#D6CEC0; --trilho:#EEE8DD;
-  --marca:#0F6B62; --marca-forte:#0B544D; --marca-suave:#E3F0ED; --marca-texto:#FFFFFF;
+  --serifa:"Archivo Largo","Archivo",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --sans:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --fundo:#EEF1EC; --fundo-vidro:rgba(238,241,236,.92); --papel:#FFFFFF; --papel-2:#F6F8F5;
+  --tinta:#1B2622; --suave:#55635D; --linha:#DCE2DC; --borda-campo:#C9D2CB; --trilho:#E3E8E3;
+  --marca:#0F6B62; --marca-forte:#0A5049; --marca-suave:#E1EFEB; --marca-texto:#FFFFFF;
+  --acao:#C2410C; --acao-forte:#9A3412; --acao-texto:#FFFFFF;
   --zap:#137A45; --zap-texto:#FFFFFF; --zap-suave:#E1F2E7; --zap-forte:#0D5A32;
-  --ouro:#A87A1F; --foco:#0F6B62; --aviso-fundo:#FFF3DC; --aviso-texto:#5A3B00;
-  --av0:#E1ECF7; --av1:#F5E5D6; --av2:#E2F0E3; --av3:#ECE3F3; --av4:#F6E1E4; --av5:#E2EDEA; --av-tinta:#1C2A32;
-  --sombra:0 1px 2px rgba(20,33,42,.04),0 10px 24px -16px rgba(20,33,42,.22);
-  --brilho:rgba(15,107,98,.11);
+  --ouro:#9A6B12; --foco:#C2410C; --aviso-fundo:#FDF0E2; --aviso-texto:#6B2C06;
+  --av0:#DDE9F2; --av1:#F3E3D3; --av2:#DDEEDF; --av3:#E8E0F0; --av4:#F3DEE1; --av5:#DCEBE7; --av-tinta:#1B2622;
+  --sombra:0 1px 0 rgba(27,38,34,.04),0 12px 32px -20px rgba(27,38,34,.28);
+  --raio-g:22px; --raio:12px; --raio-p:8px;
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --fundo:#0D1316; --fundo-vidro:rgba(13,19,22,.88); --papel:#141C20; --papel-2:#182227;
-    --tinta:#E8EEF0; --suave:#9FB0B7; --linha:#243238; --borda-campo:#33454D; --trilho:#22313A;
-    --marca:#5FC9BD; --marca-forte:#86DCD2; --marca-suave:#163735; --marca-texto:#052320;
+    --fundo:#0E1412; --fundo-vidro:rgba(14,20,18,.9); --papel:#161E1B; --papel-2:#1B2521;
+    --tinta:#E6ECE8; --suave:#9DADA5; --linha:#26332E; --borda-campo:#35443E; --trilho:#22302B;
+    --marca:#5FC9BD; --marca-forte:#86DCD2; --marca-suave:#153532; --marca-texto:#052320;
+    --acao:#FB8A4C; --acao-forte:#FDAA7A; --acao-texto:#2A0E02;
     --zap:#35B36F; --zap-texto:#04170C; --zap-suave:#163A27; --zap-forte:#86DEA9;
-    --ouro:#E2B65A; --foco:#86DCD2; --aviso-fundo:#33270F; --aviso-texto:#FBE3B0;
-    --av0:#1F3142; --av1:#3B2C20; --av2:#1F3526; --av3:#2D2439; --av4:#3B2429; --av5:#20322F; --av-tinta:#E8EEF0;
-    --sombra:none; --brilho:rgba(95,201,189,.07);
+    --ouro:#E2B65A; --foco:#FB8A4C; --aviso-fundo:#33210F; --aviso-texto:#FBDDC0;
+    --av0:#1F3142; --av1:#3B2C20; --av2:#1F3526; --av3:#2D2439; --av4:#3B2429; --av5:#20322F; --av-tinta:#E6ECE8;
+    --sombra:none;
   }
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;min-height:100vh;color:var(--tinta);font:16px/1.55 var(--sans);font-feature-settings:"cv11","ss01";
+body{margin:0;min-height:100vh;color:var(--tinta);font:16px/1.55 var(--sans);
   -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
-  background:radial-gradient(1100px 420px at 8% -8%,var(--brilho),transparent 62%),var(--fundo);background-color:var(--fundo)}
+  background:var(--fundo)}
 .pagina{max-width:1200px;margin:0 auto;padding:30px 20px 56px}
-.marca{display:flex;align-items:center;gap:10px;color:var(--marca-forte);font-size:.76rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+.marca{display:flex;align-items:center;gap:9px;color:var(--tinta);font:700 1rem/1 var(--serifa);letter-spacing:-.01em}
 .marca svg{width:28px;height:28px;color:var(--marca)}
-h1{font:600 clamp(1.7rem,3.2vw,2.4rem)/1.15 var(--serifa);letter-spacing:-.015em;margin:14px 0 6px}
+h1{font:800 clamp(1.9rem,3.6vw,2.75rem)/1.04 var(--serifa);letter-spacing:-.03em;margin:18px 0 10px;max-width:18ch}
 .sub{margin:0;color:var(--suave)}
 .consultas{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0;padding:0;list-style:none}
 .consultas li{padding:4px 12px;border-radius:99px;background:var(--papel);border:1px solid var(--linha);font-size:.85rem;color:var(--suave)}
@@ -52,6 +54,8 @@ h1{font:600 clamp(1.7rem,3.2vw,2.4rem)/1.15 var(--serifa);letter-spacing:-.015em
 .botao svg{width:17px;height:17px;flex:0 0 auto}
 .botao.principal{background:var(--marca);border-color:var(--marca);color:var(--marca-texto);font-weight:600}
 .botao.principal:hover{background:var(--marca-forte);border-color:var(--marca-forte)}
+.botao.acao{background:var(--acao);border-color:var(--acao);color:var(--acao-texto);font-weight:650}
+.botao.acao:hover{background:var(--acao-forte);border-color:var(--acao-forte)}
 .botoes{display:flex;flex-wrap:wrap;gap:8px}
 a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--foco);outline-offset:2px}
 .rodape{margin-top:40px;padding-top:18px;border-top:1px solid var(--linha);color:var(--suave);font-size:.86rem;max-width:84ch}
@@ -97,17 +101,17 @@ def icone_svg(nome):
             f'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{caminhos}</svg>')
 
 
-def _fontes_inter():
-    """Fonte Inter (OFL-1.1) embutida em base64: nítida e igual em qualquer computador, sem Google Fonts."""
-    pasta = Path(__file__).resolve().parent / "vendor" / "inter"
-    regras = []
-    for peso in (400, 500, 600, 700):
-        arq = pasta / f"inter-latin-{peso}-normal.woff2"
-        if arq.exists():
-            dados = base64.b64encode(arq.read_bytes()).decode("ascii")
-            regras.append("@font-face{font-family:\"Inter\";font-style:normal;font-weight:%d;font-display:swap;"
-                          "src:url(data:font/woff2;base64,%s) format(\"woff2\")}" % (peso, dados))
-    return "\n".join(regras)
+def _fontes():
+    """Fonte Archivo (Omnibus-Type, OFL-1.1) embutida em base64, sem Google Fonts. Um arquivo variável
+    serve para duas famílias: "Archivo" (largura normal, textos) e "Archivo Largo" (títulos, mais larga)."""
+    arq = Path(__file__).resolve().parent / "vendor" / "archivo" / "archivo-latin-wdth-normal.woff2"
+    if not arq.exists():
+        return ""
+    dados = base64.b64encode(arq.read_bytes()).decode("ascii")
+    fonte = 'src:url(data:font/woff2;base64,%s) format("woff2")' % dados
+    return ('@font-face{font-family:"Archivo";font-style:normal;font-weight:100 900;font-stretch:100%%;font-display:swap;%s}\n'
+            '@font-face{font-family:"Archivo Largo";font-style:normal;font-weight:100 900;font-stretch:118%%;font-display:swap;%s}'
+            % (fonte, fonte))
 
 
-ESTILO_BASE = _fontes_inter() + "\n" + ESTILO_BASE
+ESTILO_BASE = _fontes() + "\n" + ESTILO_BASE

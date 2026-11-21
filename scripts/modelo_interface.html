@@ -9,24 +9,29 @@
 <style>__MAPLIBRE_CSS__</style>
 <style>
 __ESTILO_BASE__
-.coluna{display:grid;gap:20px;align-content:start}
+.app{display:grid;grid-template-columns:minmax(400px,540px) minmax(0,1fr);min-height:100vh}
+.painel{padding:34px clamp(20px,3vw,44px) 40px;background:var(--papel);border-right:1px solid var(--linha);min-width:0}
+.topo{padding-bottom:26px;border-bottom:1px solid var(--linha)}
+.topo .sub{max-width:46ch}
+.palco{position:sticky;top:0;height:100vh;background:#E4E9E3;overflow:hidden}
+.bloco{padding:26px 0;border-bottom:1px solid var(--linha)}
+.bloco h2{font:750 1.28rem/1.2 var(--serifa);letter-spacing:-.015em;margin:0 0 4px}
+.bloco .dica{color:var(--suave);font-size:.9rem;margin:0}
+.painel .rodape{border-top:0;margin-top:8px;padding-top:24px}
 #fim .botoes{margin-top:14px}
-.grade-app{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px;margin-top:24px;align-items:start}
-.cartao{background:var(--papel);border:1px solid var(--linha);border-radius:20px;padding:22px;box-shadow:var(--sombra)}
-.cartao h2{font:600 1.3rem/1.25 var(--serifa);margin:0 0 4px}
-.cartao .dica{color:var(--suave);font-size:.9rem;margin:0}
 form{display:grid;gap:18px;margin-top:18px}
 .passo{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px}
-.num{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:var(--marca-suave);color:var(--marca-forte);font:600 .85rem/1 var(--sans)}
+.num{display:grid;place-items:center;width:26px;height:26px;margin-top:1px;border-radius:50%;border:1.5px solid var(--marca);color:var(--marca-forte);font:700 .8rem/1 var(--sans);font-variant-numeric:tabular-nums}
 .passo label,.passo .titulo{display:block;font-weight:600;margin:3px 0 6px}
 .passo small{display:block;color:var(--suave);font-size:.84rem;margin-top:6px}
-input[type=text]{width:100%;font:inherit;color:var(--tinta);background:var(--papel);border:1px solid var(--borda-campo);border-radius:12px;padding:11px 13px;min-height:46px;transition:border-color .15s}
+input[type=text]{width:100%;font:inherit;color:var(--tinta);background:var(--papel-2);border:1px solid var(--borda-campo);border-radius:var(--raio);padding:11px 13px;min-height:46px;transition:border-color .15s}
 input[type=text]:hover{border-color:var(--suave)}
+input[type=text]:focus{background:var(--papel);border-color:var(--marca)}
 .segmentos{display:inline-flex;flex-wrap:wrap;gap:6px}
 .segmentos label{position:relative;margin:0;font-weight:500}
 .segmentos input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
-.segmentos span{display:inline-block;min-width:64px;text-align:center;padding:9px 14px;border-radius:12px;border:1px solid var(--borda-campo);background:var(--papel)}
-.segmentos input:checked+span{background:var(--marca);border-color:var(--marca);color:var(--marca-texto);font-weight:600}
+.segmentos span{display:inline-block;min-width:64px;text-align:center;padding:9px 14px;border-radius:var(--raio);font-variant-numeric:tabular-nums;border:1px solid var(--borda-campo);background:var(--papel)}
+.segmentos input:checked+span{background:var(--tinta);border-color:var(--tinta);color:var(--papel);font-weight:600}
 .segmentos input:focus-visible+span{outline:3px solid var(--foco);outline-offset:2px}
 .passo .chave,.avancado .chave{position:relative;display:flex;align-items:center;gap:12px;cursor:pointer;font-weight:600;margin:3px 0 0}
 .chave input{position:absolute;opacity:0;width:1px;height:1px}
@@ -36,11 +41,11 @@ input[type=text]:hover{border-color:var(--suave)}
 .chave input:checked+.trilho::after{transform:translateX(18px)}
 .chave input:focus-visible+.trilho{outline:3px solid var(--foco);outline-offset:2px}
 .enviar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:4px}
-.enviar .botao.principal{min-width:200px;min-height:48px;font-size:1rem}
+.enviar .botao.acao{min-width:220px;min-height:52px;font-size:1.02rem;border-radius:var(--raio)}
 .erro{color:#B42318;font-weight:500;margin:0}
 @media (prefers-color-scheme: dark){.erro{color:#FDA29B}}
 .letra-miuda{color:var(--suave);font-size:.8rem;margin:16px 0 0}
-.andamento{border-color:var(--marca)}
+.andamento .status{color:var(--marca-forte)}
 .status{display:flex;align-items:center;gap:10px;font-weight:600}
 .pulso{width:10px;height:10px;border-radius:99px;background:var(--marca);animation:pulso 1.4s ease-in-out infinite}
 @keyframes pulso{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
@@ -48,16 +53,16 @@ input[type=text]:hover{border-color:var(--suave)}
 .barra-ind::after{content:"";position:absolute;inset:0;width:35%;border-radius:99px;background:var(--marca);animation:andar 1.6s ease-in-out infinite}
 @keyframes andar{0%{transform:translateX(-100%)}100%{transform:translateX(290%)}}
 .metricas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
-.metrica{background:var(--papel-2);border:1px solid var(--linha);border-radius:14px;padding:10px 12px}
-.metrica b{display:block;font:600 1.4rem/1.1 var(--serifa);font-variant-numeric:tabular-nums}
+.metrica{border-top:2px solid var(--tinta);padding:10px 2px 0}
+.metrica b{display:block;font:750 1.6rem/1.05 var(--serifa);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .metrica span{color:var(--suave);font-size:.82rem}
 .metricas.quatro{grid-template-columns:repeat(4,minmax(0,1fr))}
 .lista-consultas{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0;padding:0;list-style:none}
 .lista-consultas li{padding:3px 10px;border-radius:99px;border:1px solid var(--linha);background:var(--papel-2);font-size:.82rem;color:var(--suave)}
 .mensagens{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--papel-2);border:1px solid var(--linha);font:500 .82rem/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;color:var(--suave)}
 .buscas{display:grid;gap:10px;margin-top:14px}
-.busca{display:grid;grid-template-columns:minmax(0,1fr);gap:10px 14px;align-items:center;padding:14px;border:1px solid var(--linha);border-radius:16px;background:var(--papel-2)}
-.busca h3{font:600 1rem/1.3 var(--serifa);margin:0}
+.busca{display:grid;grid-template-columns:minmax(0,1fr);gap:10px 14px;align-items:center;padding:16px;border:1px solid var(--linha);border-radius:var(--raio);background:var(--papel-2)}
+.busca h3{font:700 1.02rem/1.3 var(--sans);margin:0}
 .busca .meta{color:var(--suave);font-size:.82rem}
 .busca .nums{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.86rem;color:var(--suave)}
 .busca .nums b{color:var(--tinta);font-variant-numeric:tabular-nums}
@@ -68,7 +73,7 @@ input[type=text]:hover{border-color:var(--suave)}
 .busca .botao.apagar{color:var(--suave)}
 .busca .botao.apagar:hover{color:#B3261E;border-color:#B3261E;background:transparent}
 .busca .botao.apagar.confirmar{color:#fff;background:#B3261E;border-color:#B3261E}
-.avancado{border:1px solid var(--linha);border-radius:14px;padding:0 14px}
+.avancado{border:1px solid var(--linha);border-radius:var(--raio);padding:0 16px;background:var(--papel-2)}
 .avancado summary{cursor:pointer;font-weight:600;padding:12px 0;list-style-position:inside}
 .avancado[open] summary{border-bottom:1px solid var(--linha);margin-bottom:12px}
 .avancado-corpo{display:grid;gap:16px;padding-bottom:14px}
@@ -80,15 +85,14 @@ input[type=text]:hover{border-color:var(--suave)}
 .vazio{color:var(--suave);font-size:.92rem}
 .oculto{display:none!important}
 /* mapa da tela */
-.cartao.mapa-cartao{position:relative;padding:0;overflow:hidden;height:420px;background:#E8E4DB}
 #mapa{position:absolute;inset:0}
 .vidro{background:var(--papel);background:color-mix(in srgb,var(--papel) 84%,transparent);-webkit-backdrop-filter:blur(14px) saturate(1.5);
   backdrop-filter:blur(14px) saturate(1.5);border:1px solid color-mix(in srgb,var(--linha) 85%,transparent);box-shadow:0 10px 28px -14px rgba(10,20,25,.45)}
-.mapa-info{position:absolute;top:14px;left:14px;z-index:4;max-width:calc(100% - 80px);padding:10px 14px;border-radius:16px;font-size:.86rem;color:var(--suave)}
-.mapa-info b{font:600 1.2rem/1 var(--serifa);color:var(--tinta);margin-right:6px}
+.mapa-info{position:absolute;top:22px;left:22px;z-index:4;max-width:calc(100% - 100px);padding:14px 18px;border-radius:var(--raio-g);font-size:.92rem;color:var(--suave);display:flex;align-items:baseline;gap:10px}
+.mapa-info b{font:800 2.1rem/1 var(--serifa);color:var(--tinta);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .mapa-aviso{position:absolute;left:14px;right:14px;bottom:14px;z-index:4;margin:0;padding:10px 14px;border-radius:14px;background:var(--papel);border:1px solid var(--linha);color:var(--suave);font-size:.86rem}
 .pino-wrap{position:relative;width:34px;height:46px;display:flex;justify-content:center;cursor:pointer}
-.pino{position:relative;width:28px;height:28px;margin-top:3px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:linear-gradient(135deg,#178A80,#0A4A44);border:2.5px solid #fff;box-shadow:0 5px 12px rgba(8,20,22,.42);transition:transform .2s}
+.pino{position:relative;width:28px;height:28px;margin-top:3px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--marca);border:2.5px solid #fff;box-shadow:0 5px 12px rgba(8,20,22,.42);transition:transform .2s}
 .pino::after{content:"";position:absolute;width:8px;height:8px;border-radius:50%;background:#fff;top:7px;left:7px}
 .pino-selo{position:absolute;top:0;right:2px;width:12px;height:12px;border-radius:50%;background:#22A35A;border:2px solid #fff}
 .pino-wrap:hover .pino{transform:rotate(-45deg) scale(1.15)}
@@ -101,22 +105,23 @@ input[type=text]:hover{border-color:var(--suave)}
 .pop-linha{display:block;color:var(--suave);font-size:.84rem}
 .maplibregl-ctrl-group{border-radius:12px!important;overflow:hidden;border:1px solid var(--linha);box-shadow:0 10px 24px -12px rgba(10,20,25,.5)!important}
 .busca.no-mapa{border-color:var(--marca);box-shadow:0 0 0 2px var(--marca)}
-@media (max-width:900px){.cartao.mapa-cartao{height:340px}}
-@media (max-width:900px){.grade-app{grid-template-columns:1fr}.metricas.quatro{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:900px){.app{display:flex;flex-direction:column}.palco{order:-1;position:relative;height:46vh;min-height:300px}
+  .painel{border-right:0;padding-top:26px}.mapa-info{top:12px;left:12px;padding:9px 13px;font-size:.84rem;border-radius:var(--raio)}.mapa-info b{font-size:1.35rem}}
+@media (max-width:900px){.metricas.quatro{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.busca{grid-template-columns:1fr}.busca .botoes{justify-content:flex-start}}
 @media (prefers-reduced-motion: reduce){.pulso,.barra-ind::after{animation:none}}
 </style>
 </head>
 <body>
-<div class="pagina">
+<div class="app">
+<main class="painel">
   <header class="topo">
-    <div class="marca">__MARCA__<span>Kit de Leads · Google Maps</span></div>
+    <div class="marca">__MARCA__<span>Kit de Leads</span></div>
     <h1>Encontre empresas para prospectar</h1>
-    <p class="sub">Diga o segmento e a cidade. O kit busca no Google Maps, limpa a lista e monta um relatório com WhatsApp, site e e-mail.</p>
+    <p class="sub">Diga o que procura e em qual cidade. O kit busca no Google Maps, marca cada empresa no mapa e entrega a lista com WhatsApp, site e e-mail.</p>
   </header>
 
-  <div class="grade-app">
-    <section class="cartao" aria-labelledby="t-nova">
+    <section class="bloco" aria-labelledby="t-nova">
       <h2 id="t-nova">Nova busca</h2>
       <p class="dica">Uma busca por vez. Começar pequeno evita que o Google limite o acesso.</p>
       <form id="form" novalidate>
@@ -180,7 +185,7 @@ input[type=text]:hover{border-color:var(--suave)}
           </div>
         </details>
         <div class="enviar">
-          <button type="submit" class="botao principal" id="enviar">__ICONE_BUSCA__Buscar empresas</button>
+          <button type="submit" class="botao acao" id="enviar">__ICONE_BUSCA__Buscar empresas</button>
           <p class="erro" id="erro" role="alert"></p>
         </div>
       </form>
@@ -188,13 +193,7 @@ input[type=text]:hover{border-color:var(--suave)}
       empresas podem ser dados pessoais (LGPD): use com finalidade clara e respeite quem pedir para não ser contatado.</p>
     </section>
 
-    <div class="coluna">
-      <section class="cartao mapa-cartao" aria-label="Mapa da busca">
-        <div id="mapa"></div>
-        <div class="vidro mapa-info"><b id="mapa-n">—</b><span id="mapa-titulo">Faça uma busca para ver as empresas no mapa</span></div>
-        <p class="mapa-aviso" id="mapa-aviso" hidden></p>
-      </section>
-      <section class="cartao andamento oculto" id="andamento" aria-live="polite" aria-labelledby="t-and">
+      <section class="bloco andamento oculto" id="andamento" aria-live="polite" aria-labelledby="t-and">
         <h2 id="t-and">Andamento</h2>
         <div class="status" id="status"><span class="pulso" aria-hidden="true"></span><span id="status-texto">Buscando…</span></div>
         <div class="barra-ind" id="barra"></div>
@@ -203,18 +202,23 @@ input[type=text]:hover{border-color:var(--suave)}
         <div id="fim"></div>
       </section>
 
-      <section class="cartao" aria-labelledby="t-buscas">
+      <section class="bloco" aria-labelledby="t-buscas">
         <h2 id="t-buscas">Suas buscas</h2>
         <p class="dica">Os resultados ficam só neste computador, na pasta <code>resultados/</code>.</p>
         <div class="buscas" id="buscas"><p class="vazio">Carregando…</p></div>
       </section>
-    </div>
-  </div>
 
   <footer class="rodape">
     <p>Esta tela roda só no seu computador e não envia suas listas para a internet.
     Motor de coleta: <span class="credito">gosom/google-maps-scraper</span> (código aberto, licença MIT).</p>
   </footer>
+</main>
+
+<section class="palco" aria-label="Mapa da busca">
+  <div id="mapa"></div>
+  <div class="vidro mapa-info"><b id="mapa-n">—</b><span id="mapa-titulo">As empresas da sua busca aparecem aqui</span></div>
+  <p class="mapa-aviso" id="mapa-aviso" hidden></p>
+</section>
 </div>
 
 <script>__MAPLIBRE_JS__</script>
@@ -412,9 +416,9 @@ input[type=text]:hover{border-color:var(--suave)}
   }
   usarPonto.addEventListener("change", function () {
     desenharPonto();
-    var caixa = document.querySelector(".mapa-cartao").getBoundingClientRect();
+    var caixa = document.querySelector(".palco").getBoundingClientRect();
     if (usarPonto.checked && (caixa.top < 0 || caixa.bottom > window.innerHeight))
-      document.querySelector(".mapa-cartao").scrollIntoView({ behavior: "smooth", block: "center" });
+      document.querySelector(".palco").scrollIntoView({ behavior: "smooth", block: "center" });
   });
   Array.prototype.forEach.call(document.querySelectorAll("input[name=raio]"), function (r) {
     r.addEventListener("change", function () {
