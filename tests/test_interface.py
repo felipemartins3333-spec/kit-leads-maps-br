@@ -129,6 +129,7 @@ class TesteServidor(unittest.TestCase):
         status, corpo, cab = self.pedir("GET", "/")
         self.assertEqual(status, 200)
         self.assertIn("Nova busca", corpo)
+        self.assertIn("window.mapaReserva", corpo, "a tela também tem o mapa reserva (sem WebGL)")
         self.assertIn("frame-ancestors 'none'", cab["Content-Security-Policy"])
         status, corpo, _ = self.pedir("GET", "/api/estado")
         d = json.loads(corpo)

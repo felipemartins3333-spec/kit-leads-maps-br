@@ -641,8 +641,10 @@ tbody tr.ativo{border-color:var(--marca)!important;box-shadow:0 0 0 2px var(--ma
       mapa = new maplibregl.Map({ container: "mapa", style: ESTILOS + estiloAtual, center: [-47.9, -15.8], zoom: 3.6,
         attributionControl: { compact: true }, dragRotate: false, pitchWithRotate: false, touchPitch: false });
     } catch (e) {
-      MAPA_OK = false; mapa = null;
-      avisar("O mapa não abriu neste navegador (precisa de WebGL). A lista continua funcionando."); return;
+      mapa = null;
+      if (window.mapaReserva && maplibregl !== window.mapaReserva) { maplibregl = window.mapaReserva; return iniciarMapa(); }
+      MAPA_OK = false;
+      avisar("O mapa não abriu neste navegador. A lista continua funcionando."); return;
     }
     mapa.touchZoomRotate.disableRotation();
     mapa.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");

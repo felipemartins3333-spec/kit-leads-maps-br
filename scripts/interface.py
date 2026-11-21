@@ -265,8 +265,8 @@ def pagina(token):
               ("__ICONES_JSON__", gerar_relatorio.json_seguro_para_html(visual.ICONES)),
               ("__ICONE_BUSCA__", visual.icone_svg("busca")),
               ("__TOKEN__", token),
-              ("__MAPLIBRE_CSS__", (gerar_relatorio.VENDOR / "maplibre-gl.css").read_text(encoding="utf-8")),
-              ("__MAPLIBRE_JS__", (gerar_relatorio.VENDOR / "maplibre-gl.js").read_text(encoding="utf-8"))]
+              ("__MAPLIBRE_CSS__", gerar_relatorio.css_do_mapa()),
+              ("__MAPLIBRE_JS__", gerar_relatorio.js_do_mapa())]
     html = MODELO
     for a, b in trocas:
         html = html.replace(a, b)

@@ -294,6 +294,7 @@ depois de atualizar: `python3 scripts/kit.py limpar --antigas`.
 | "O Docker não está instalado" | Veja B1. |
 | "O Docker Desktop está instalado, mas não está aberto" | Abra o Docker Desktop, espere iniciar e rode de novo. |
 | "o serviço não está ligado" (Linux) | `sudo systemctl start docker` |
+| Mapa em branco ou "o mapa não abriu" | O kit escolhe sozinho: com WebGL usa a MapLibre; sem WebGL (computador sem placa de vídeo, Codespace, navegador da empresa) usa o mapa reserva, que desenha o mesmo mapa de outro jeito. Se ainda ficar em branco, o fundo do mapa precisa de internet (`tiles.openfreemap.org`); a lista funciona sem ela. |
 | "não tem permissão" (Linux) | Passo 4 de `docs/teste-no-chromebook.md` (grupo `docker`), depois feche e abra o terminal. |
 | "Falta espaço" | Libere pelo menos 5 GB e rode de novo (`kit.py limpar --antigas` remove versões velhas do motor). |
 | Parece travado durante a busca | O kit mostra o andamento a cada 20 s. Se quiser parar, aperte Ctrl+C: o motor é parado e o que já foi coletado fica em `resultados/`. |

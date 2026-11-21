@@ -33,6 +33,40 @@ MODELO = (Path(__file__).resolve().parent / "modelo_relatorio.html").read_text(e
 VENDOR = Path(__file__).resolve().parent / "vendor" / "maplibre"
 
 
+RESERVA = Path(__file__).resolve().parent / "vendor" / "openlayers"
+# ol-mapbox-style espera estes três nomes no "ol" global, que a versão completa do OpenLayers não expõe
+# (valores copiados de ol/TileState.js, ol/ImageState.js e ol/events/EventType.js do ol@10.11.0).
+_PONTE_OLMS = ('(function(){var E={IDLE:0,LOADING:1,LOADED:2,ERROR:3,EMPTY:4};ol.TileState=ol.TileState||E;'
+               'ol.ImageState=ol.ImageState||E;ol.events=ol.events||{};ol.events.EventType=ol.events.EventType||'
+               '{CHANGE:"change",ERROR:"error",BLUR:"blur",CLEAR:"clear",CONTEXTMENU:"contextmenu",CLICK:"click",'
+               'DBLCLICK:"dblclick",DRAGENTER:"dragenter",DRAGOVER:"dragover",DROP:"drop",FOCUS:"focus",KEYDOWN:"keydown",'
+               'KEYPRESS:"keypress",KEYUP:"keyup",LOAD:"load",RESIZE:"resize",TOUCHMOVE:"touchmove",WHEEL:"wheel"};})();')
+
+
+def css_do_mapa():
+    """CSS da MapLibre + do OpenLayers (modo reserva) + ajustes do kit para o modo reserva."""
+    return ((VENDOR / "maplibre-gl.css").read_text(encoding="utf-8") + "\n"
+            + (RESERVA / "ol.css").read_text(encoding="utf-8") + "\n"
+            ".mapa-reserva .ol-overlay-container .maplibregl-popup{position:relative;transform:none}\n"
+            ".mapa-reserva .ol-attribution{right:8px;bottom:8px;border-radius:10px;background:rgba(255,255,255,.85);font:11px/1.4 system-ui,sans-serif}\n"
+            ".mapa-reserva .ol-attribution ul{padding:2px 6px}\n"
+            ".mapa-reserva .ol-attribution button{display:none}\n"
+            ".mapa-reserva .maplibregl-control-container{position:absolute;inset:0;pointer-events:none;z-index:3}\n")
+
+
+def js_do_mapa():
+    """MapLibre (com WebGL) e, de reserva, OpenLayers + ol-mapbox-style (sem WebGL), em blocos <script> separados.
+    O modelo tem <script>__MAPLIBRE_JS__</script>: o texto devolvido fecha e abre os blocos no meio."""
+    partes = [(VENDOR / "maplibre-gl.js").read_text(encoding="utf-8"),
+              (RESERVA / "ol.js").read_text(encoding="utf-8"),
+              _PONTE_OLMS + "\n" + (RESERVA / "olms.js").read_text(encoding="utf-8"),
+              (Path(__file__).resolve().parent / "mapa_reserva.js").read_text(encoding="utf-8")]
+    for t in partes:
+        if "</script" in t.lower():
+            raise ValueError("biblioteca do mapa com '</script' no texto")
+    return "</script>\n<script>".join(partes)
+
+
 def json_seguro_para_html(obj):
     """JSON que pode ser colocado dentro de <script> sem fechar a tag nem quebrar o parser."""
     txt = json.dumps(obj, ensure_ascii=False)
@@ -71,8 +105,8 @@ def gerar(linhas, titulo, consultas=None):
         ("__TOTAL__", str(len(linhas))),
         ("__CONSULTAS__", lista_consultas_html(consultas)),
         ("__ICONE_PINO__", visual.icone_svg("pino")),
-        ("__MAPLIBRE_CSS__", (VENDOR / "maplibre-gl.css").read_text(encoding="utf-8")),
-        ("__MAPLIBRE_JS__", (VENDOR / "maplibre-gl.js").read_text(encoding="utf-8")),
+        ("__MAPLIBRE_CSS__", css_do_mapa()),
+        ("__MAPLIBRE_JS__", js_do_mapa()),
     ]
     pagina = MODELO
     for marcador, valor in trocas:

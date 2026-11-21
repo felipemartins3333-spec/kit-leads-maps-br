@@ -367,7 +367,11 @@ input[type=text]:focus{background:var(--papel);border-color:var(--marca)}
     try {
       mapa = new maplibregl.Map({ container: "mapa", style: "https://tiles.openfreemap.org/styles/liberty",
         center: [-47.9, -15.8], zoom: 3.4, attributionControl: { compact: true }, dragRotate: false, touchPitch: false });
-    } catch (e) { mapa = null; avisar("O mapa precisa de WebGL, que este navegador não liberou."); return; }
+    } catch (e) {
+      mapa = null;
+      if (window.mapaReserva && maplibregl !== window.mapaReserva) { maplibregl = window.mapaReserva; return iniciarMapa(); }
+      avisar("O mapa não abriu neste navegador."); return;
+    }
     mapa.touchZoomRotate.disableRotation();
     mapa.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     var avisado = false;

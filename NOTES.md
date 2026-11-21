@@ -537,3 +537,21 @@ e `testar`. Não precisou instalar nada no sistema nem pedir confirmação.
   variável com duas famílias: "Archivo" (texto) e "Archivo Largo" (títulos, largura 118%). Inter removida.
 - Tela: o mapa é a peça principal (metade direita, altura total, fixo); formulário numa coluna à esquerda; no
   celular o mapa fica em cima. Verificado com prints (computador e iPhone 13) e 105 testes.
+
+## Rodada 18 (2026-11-21) — mapa em qualquer navegador (sem WebGL)
+
+- Relato do Felipe (Claude Desktop no Codespace): "o mapa precisa de WebGL, que este navegador não liberou".
+  Causa medida no Chromium do Playwright: com `--disable-gpu --disable-software-rasterizer` não há WebGL
+  (é o caso de máquina sem placa de vídeo); a MapLibre não funciona sem WebGL.
+- Solução (código próprio `scripts/mapa_reserva.js`): quando não há WebGL (ou a MapLibre falha ao abrir),
+  `window.maplibregl` vira uma versão com as mesmas funções que o kit usa, feita sobre OpenLayers 10.11.0 +
+  ol-mapbox-style 13.9.0 (BSD-2, sha512 conferidos), que desenha o MESMO estilo do OpenFreeMap em Canvas 2D.
+  Mesmo servidor de mapas, mesma CSP. Ponte: o olms.js espera `ol.TileState`, `ol.ImageState` e
+  `ol.events.EventType`, que o ol.js completo não expõe (valores copiados do código do ol@10.11.0).
+- Cartão (popup) abre para baixo quando o alfinete está na metade de cima (como a MapLibre) e fica por
+  cima dos alfinetes. Zoom: OpenLayers = MapLibre + 1. Para testar num navegador com WebGL: `#mapa-simples`.
+- Custo: o relatório passou de ~1,4 MB para ~2,6 MB (bibliotecas embutidas). Aviso de CSP no console do modo
+  reserva (o olms tenta carregar fontes por `<link>`; bloqueado de propósito, rótulos usam a fonte do sistema).
+- Verificado no Chromium sem WebGL e com WebGL: tela (alfinetes, cartão, ponto + círculo do raio) e relatório
+  (alfinetes, grupos, cartão); com WebGL continua a MapLibre. 105 testes. **Não verificado:** o painel Browser
+  do Claude Desktop de verdade, Firefox e Safari.

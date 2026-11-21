@@ -1,0 +1,5 @@
+OpenLayers (npm: ol@10.11.0, BSD-2-Clause, dist/ol.js e ol.css)
+sha512 do pacote: OJ+lrx7kx/1O7Xx18Ff9QkVnwZIEL0OuhJQSy2sYgzzDvyZ2qHvuZEGAajbSstUyBwaS1OtQ4RWnY84tRMDdqg==
+ol-mapbox-style (npm: ol-mapbox-style@13.9.0, BSD-2-Clause, dist/olms.js)
+sha512 do pacote: hrutLPG/XjKdB2BFg/BvthIaidPNsYLMC3v2UGjNKikGieyVJlFsCRkt7rTP5ES13Qc/yosAEg4IUjuOfbejFQ==
+Arquivos copiados sem alteração. Usados só quando o navegador não tem WebGL (ver scripts/mapa_reserva.js).

@@ -53,6 +53,11 @@ SOFTWARE.
 
 ## Tipografia
 
+- **OpenLayers** 10.11.0 (© OpenLayers Contributors, BSD-2-Clause) e **ol-mapbox-style** 13.9.0
+  (© ol-mapbox-style contributors, BSD-2-Clause; inclui `@maplibre/maplibre-gl-style-spec` e
+  `mapbox-to-css-font`), embutidos a partir de `scripts/vendor/openlayers/` sem alterações. Usados só como
+  **mapa reserva**, quando o navegador não tem WebGL: desenham o mesmo estilo do OpenFreeMap em Canvas 2D.
+  Licenças em `scripts/vendor/openlayers/LICENSE-ol.md` e `LICENSE-olms`.
 - **Archivo** (© The Archivo Project Authors, Omnibus-Type; SIL Open Font License 1.1), fonte variável
   (peso e largura), subconjunto latin, embutida nas páginas a partir de `scripts/vendor/archivo/` (pacote
   `@fontsource-variable/archivo@5.3.0`, sem alterações). Licença em `scripts/vendor/archivo/LICENSE`. Por estar
